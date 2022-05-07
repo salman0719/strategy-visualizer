@@ -1,0 +1,36 @@
+.fifteen-puzzle-container > .box {
+  margin: 0px;
+}
+
+.tile {
+  left: 0px;
+  position: absolute;
+  top: 0px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left 0.3s, top 0.3s;
+
+  background-color: rgb(117 204 150);
+  border: 1px solid rgb(84 147 108);
+}
+
+.tile > small {
+  color: #fff;
+  /* background-color: rgb(132, 226, 168); */
+}
+
+.state-identifier {
+  position: absolute;
+  top: 8px;
+  right: 100%;
+  margin-right: 10px;
+  color: #cddede;
+  font-weight: bold;
+}
+
+.state-identifier.active {
+  color: #026177;
+}

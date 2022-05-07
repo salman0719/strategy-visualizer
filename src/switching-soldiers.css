@@ -1,0 +1,39 @@
+.soldier {
+  left: 10px;
+  top: 10px;
+  position: absolute;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 25px;
+  transition: left 0.3s;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.soldier > small {
+  color: #fff;
+}
+
+.left-soldier {
+  background-color: rgb(132, 226, 168);
+}
+
+.right-soldier {
+  background-color: rgb(173, 132, 226);
+}
+
+.state-identifier {
+  position: absolute;
+  top: 8px;
+  right: 100%;
+  margin-right: 10px;
+  color: #cddede;
+  font-weight: bold;
+}
+
+.state-identifier.active {
+  color: #026177;
+}
