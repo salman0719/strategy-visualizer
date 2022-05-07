@@ -7,15 +7,8 @@ import { ToastProvider } from './Component/Toast'
 import queryString from './Util/queryString'
 import Puzzle15Visualizer from './Component/Visualizer/15Puzzle'
 
-const TEMP_TEST = () => {
-  console.log('Testing codesandbox linking with github!')
-}
-
 export default function App() {
   const [toastRendered, setToastRendered] = useState(false)
-
-  // TEMP
-  console.log('Testing')
 
   useEffect(() => {
     setToastRendered(true)
