@@ -1,7 +1,7 @@
 import React from 'react'
 
-const Box = function ({ number }) {
-  return <div className="box">{null && <small>{number}</small>}</div>
+const Box = function () {
+  return <div className='box' />
 }
 
 export default Box

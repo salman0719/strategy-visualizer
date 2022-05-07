@@ -2,7 +2,7 @@ import ToastProvider from './ToastProvider'
 
 export { ToastProvider }
 
-export default {
+const toast = {
   success: () => {
     console.warn('`toast.success()` not yet constructed!')
   },
@@ -22,3 +22,5 @@ export default {
     console.warn('`toast.clear()` not yet constructed!')
   }
 }
+
+export default toast

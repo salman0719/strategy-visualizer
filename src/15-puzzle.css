@@ -1,5 +1,9 @@
-.fifteen-puzzle-container > .box {
+.fifteen-puzzle-container>.box {
   margin: 0px;
+}
+
+.fifteen-puzzle-container:focus {
+  outline: 2px solid #22673c;
 }
 
 .tile {
@@ -17,7 +21,7 @@
   border: 1px solid rgb(84 147 108);
 }
 
-.tile > small {
+.tile>small {
   color: #fff;
   /* background-color: rgb(132, 226, 168); */
 }

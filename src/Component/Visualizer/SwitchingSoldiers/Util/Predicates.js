@@ -1,7 +1,4 @@
-import {
-  templatePredicateForOne,
-  templatePredicateForTwo
-} from './TemplatePredicates'
+import { templatePredicateForOne, templatePredicateForTwo } from '../../../../Util/predicate'
 
 export const leftPerson = templatePredicateForOne('leftPerson')
 export const rightPerson = templatePredicateForOne('rightPerson')

@@ -1,57 +1,25 @@
 import getObj from '../../../../Util/getObj'
 import { getUniqueID } from '../../../../Util/getUniqueId'
-// import { DEFAULT_PERSON_COUNT, DEFAULT_EMPTY_GROUND_COUNT } from '../Constants'
-import {
-  templatePredicateForOne,
-  templatePredicateForTwo
-} from './TemplatePredicates'
+import { templatePredicateForOne, templatePredicateForTwo } from '../../../../Util/predicate'
+import shuffle from '../../../../Util/shuffle'
+import { DEFAULT_COLUMNS, DEFAULT_ROWS, PREDICATE_KEY } from '../Constants'
 
-// TEMP
-// Placing here
-function shuffle(array) {
-  let currentIndex = array.length,
-    randomIndex
-
-  // While there remain elements to shuffle.
-  while (currentIndex !== 0) {
-    // Pick a remaining element.
-    randomIndex = Math.floor(Math.random() * currentIndex)
-    currentIndex--
-
-    // And swap it with the current element.
-    ;[array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex]
-    ]
-  }
-
-  return array
-}
-
-export default function initialize() {
-  // personCount = DEFAULT_PERSON_COUNT,
-  // emptyGround = DEFAULT_EMPTY_GROUND_COUNT
-  // if (typeof personCount !== 'object') {
-  //   personCount = { left: personCount, right: personCount }
-  // }
-
-  // TEMP
-  // Static coding
-  const columnCount = 4,
-    rowCount = 4
+export default function initialize(
+  { columns: columnCount, rows: rowCount } = { columns: DEFAULT_COLUMNS, rows: DEFAULT_ROWS }
+) {
   const totalBox = columnCount * rowCount
   const totalTile = totalBox - 1
 
   const tiles = Array(totalTile)
     .fill(0)
-    .map((item, index) => {
+    .map((_, index) => {
       const id = 'tile-' + index + '-' + getUniqueID()
       return { id, number: index + 1 }
     })
 
   const boxes = Array(totalBox)
     .fill(0)
-    .map((item, index) => {
+    .map((_, index) => {
       const id = 'box-' + index + '-' + getUniqueID()
       return { id, index, number: index + 1 }
     })
@@ -63,7 +31,7 @@ export default function initialize() {
   const positionPred = templatePredicateForOne('position')
   const emptyPred = templatePredicateForOne('empty')
   const atPred = templatePredicateForTwo('at', {
-    onAssert: (tileId, boxId) => {
+    onAssert: function ({ boxes: boxObj, tiles: tileObj }, tileId, boxId) {
       const tile = tileObj[tileId]
       const box = boxObj[boxId]
       const boxIndex = box.number - 1
@@ -73,18 +41,20 @@ export default function initialize() {
       tile.posX = boxIndex % columnCount
       tile.posY = Math.floor(boxIndex / columnCount)
     },
-    onNegate: (tileId, boxId) => {
+    onNegate: function ({ tiles: tileObj }, tileId) {
       const tile = tileObj[tileId]
       tile.boxNumber = null
       tile.boxId = null
       tile.posX = null
       tile.posY = null
-    }
+    },
   })
   const adjacentuPred = templatePredicateForTwo('adjacentu')
   const adjacentdPred = templatePredicateForTwo('adjacentd')
   const adjacentlPred = templatePredicateForTwo('adjacentl')
   const adjacentrPred = templatePredicateForTwo('adjacentr')
+
+  atPred.setEventData({ boxes: boxObj, tiles: tileObj })
 
   tiles.forEach((tile) => {
     tilePred(tile.id)
@@ -124,12 +94,12 @@ export default function initialize() {
     atPred(tile.id, box.id)
   })
 
-  emptyPred(boxes[15].id)
+  emptyPred(boxes[totalBox - 1].id)
 
   return {
     tiles,
     boxes,
-    predicates: {
+    [PREDICATE_KEY]: {
       tile: tilePred,
       position: positionPred,
       empty: emptyPred,

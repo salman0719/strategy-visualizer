@@ -1,20 +1,13 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Container } from 'react-bootstrap'
-import { getUniqueID } from '../../../Util/getUniqueId'
+import React, { useCallback, useEffect, useState } from 'react'
 import Box from './Box'
 import VisualizerContext from './Context'
 import Tile from './Tile'
-import toast from '../../Toast'
 import getObj from '../../../Util/getObj'
-
-const getForceUpdate = () => {
-  const set = useState()[1]
-  return () => {
-    set(getUniqueID())
-  }
-}
+import { useForceUpdate } from '../../../Util/hooks'
+import { DEFAULT_COLUMNS } from './Constants'
 
 const Puzzle15Container = function ({
+  columnCount,
   tiles,
   boxes,
   predicates,
@@ -22,7 +15,9 @@ const Puzzle15Container = function ({
   onActive,
   isActiveBranch
 }) {
-  const forceUpdate = getForceUpdate()
+  const forceUpdate = useForceUpdate()
+
+  columnCount = columnCount || DEFAULT_COLUMNS
 
   const boxObj = useState({})[0]
   const tileObj = useState({})[0]
@@ -220,6 +215,10 @@ const Puzzle15Container = function ({
     [predicates]
   )
 
+  const onFocus = useCallback(() => {
+    onActive(stateIdentifier)
+  }, [stateIdentifier])
+
   return (
     <VisualizerContext.Provider
       value={{
@@ -228,29 +227,31 @@ const Puzzle15Container = function ({
         getMove
       }}
     >
-      <Container className="mt-3">
+      <div
+        className='position-relative d-inline-block overflow-visible fifteen-puzzle-container m-2'
+        // TODO
+        // Magic number of `40` needs to be handled
+        style={{ width: columnCount * 40 }}
+        tabIndex={-1}
+        onFocus={onFocus}
+      >
+        {boxes.map((box) => {
+          return <Box key={box.id} {...box} />
+        })}
+
+        {tiles.map((tile) => {
+          return <Tile key={tile.id} {...tile} />
+        })}
+
         <div
-          className="position-relative d-inline-block overflow-visible fifteen-puzzle-container"
-          style={{ width: 160 }}
+          className={
+            'd-none state-identifier' + (isActiveBranch ? ' active' : '')
+          }
+          onClick={onActive}
         >
-          {boxes.map((box) => {
-            return <Box key={box.id} {...box} />
-          })}
-
-          {tiles.map((tile) => {
-            return <Tile key={tile.id} {...tile} />
-          })}
-
-          <div
-            className={
-              'd-none state-identifier' + (isActiveBranch ? ' active' : '')
-            }
-            onClick={onActive}
-          >
-            {stateIdentifier}
-          </div>
+          {stateIdentifier}
         </div>
-      </Container>
+      </div>
     </VisualizerContext.Provider>
   )
 }
