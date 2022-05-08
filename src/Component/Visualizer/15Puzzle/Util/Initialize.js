@@ -4,9 +4,10 @@ import { templatePredicateForOne, templatePredicateForTwo } from '../../../../Ut
 import shuffle from '../../../../Util/shuffle'
 import { DEFAULT_COLUMNS, DEFAULT_ROWS, PREDICATE_KEY } from '../Constants'
 
-export default function initialize(
-  { columns: columnCount, rows: rowCount } = { columns: DEFAULT_COLUMNS, rows: DEFAULT_ROWS }
-) {
+export default function initialize(props) {
+  const columnCount = parseInt(props.columnCount) || DEFAULT_COLUMNS
+  const rowCount = parseInt(props.rowCount) || DEFAULT_ROWS
+
   const totalBox = columnCount * rowCount
   const totalTile = totalBox - 1
 

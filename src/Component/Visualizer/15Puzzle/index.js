@@ -1,37 +1,50 @@
 import '../../../15-puzzle.css'
-import React, { useCallback, useState } from 'react'
-import { Container, Button, Col } from 'react-bootstrap'
+import React, { useCallback, useEffect, useState } from 'react'
+import { Container, Button, Col, Form } from 'react-bootstrap'
 import initialize from './Util/Initialize'
 import copy from './Util/Copy'
 import Puzzle15Container from './PuzzleContainer'
 import { useCopyControl, useDocumentTitle } from '../../../Util/hooks'
-import { DEFAULT_ACTIVE_BRANCH, PREDICATE_KEY } from './Constants'
-
-const TEMP_COLUMNS = 8
+import { DEFAULT_COLUMNS, DEFAULT_ROWS, PREDICATE_KEY } from './Constants'
+import { ROOT_BRANCH } from '../../../Util/constants'
 
 const Puzzle15Visualizer = function () {
   useDocumentTitle('15 Puzzle')
 
+  const [formValues, setFormValues] = useState({
+    columnCount: DEFAULT_COLUMNS,
+    rowCount: DEFAULT_ROWS
+  })
+  const { columnCount, rowCount } = formValues
   const [puzzleItem, setPuzzleItem] = useState(() => {
-    return initialize({ columns: TEMP_COLUMNS, rows: 2 })
+    return initialize({ columnCount, rowCount })
   })
   const { boxes, tiles } = puzzleItem
   const predicates = puzzleItem[PREDICATE_KEY]
   const { activeBranch, copiedItems,
     set: setCopyControl, reset: resetCopyControl } = useCopyControl({ item: puzzleItem, copy })
 
-  const updatePuzzleItem = useCallback(() => {
-    setPuzzleItem(initialize())
+  const updatePuzzleItem = useCallback((initArg) => {
+    setPuzzleItem(initialize(initArg))
     resetCopyControl()
   }, [])
 
   const reset = useCallback(() => {
-    updatePuzzleItem()
+    setFormValues({ ...formValues })
   }, [])
+
+  const updateFormValue = useCallback((e) => {
+    const { target: { name, value } } = e
+    setFormValues({ ...formValues, [name]: value })
+  }, [formValues])
 
   const onActive = useCallback((stateIdentifier) => {
     setCopyControl.activeBranch(stateIdentifier)
   }, [])
+
+  useEffect(() => {
+    updatePuzzleItem({ columnCount, rowCount })
+  }, [columnCount, rowCount])
 
   return (
     <Container className='mt-5'>
@@ -46,14 +59,37 @@ const Puzzle15Visualizer = function () {
         </Button>
       </div>
 
+      <div>
+        <div className="mb-2 mx-1 d-inline-block w-200">
+          <label className="control-label">Column Count</label>
+          <Form.Control
+            name='columnCount'
+            value={columnCount}
+            onChange={updateFormValue}
+            placeholder="Column Count"
+          />
+        </div>
+
+        <div className="mb-2 mx-1 d-inline-block w-200">
+          <label className="control-label">Row Count</label>
+          <Form.Control
+            name='rowCount'
+            value={rowCount}
+            onChange={updateFormValue}
+            placeholder="Row Count"
+          />
+        </div>
+
+      </div>
+
       <Puzzle15Container
-        columnCount={TEMP_COLUMNS}
+        columnCount={columnCount}
         boxes={boxes}
         tiles={tiles}
         predicates={predicates}
-        stateIdentifier={DEFAULT_ACTIVE_BRANCH}
+        stateIdentifier={ROOT_BRANCH}
         onActive={onActive}
-        isActiveBranch={activeBranch === DEFAULT_ACTIVE_BRANCH}
+        isActiveBranch={activeBranch === ROOT_BRANCH}
       />
 
       <Col md={6} className='justify-content-center m-auto'>
@@ -64,6 +100,7 @@ const Puzzle15Visualizer = function () {
           return (
             <Puzzle15Container
               key={stateIdentifier}
+              columnCount={columnCount}
               boxes={boxes}
               tiles={tiles}
               predicates={predicates}
@@ -74,7 +111,7 @@ const Puzzle15Visualizer = function () {
           )
         })}
       </Col>
-    </Container>
+    </Container >
   )
 }
 

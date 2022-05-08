@@ -1,25 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { DEFAULT_ACTIVE_BRANCH } from './constants'
+import { ROOT_BRANCH } from './constants'
 import { getUniqueID } from './getUniqueId'
 
 export const useCopyControl = ({ item: rootItem, copy }) => {
-  const [activeBranch, setActiveBranch] = useState(DEFAULT_ACTIVE_BRANCH)
+  const [activeBranch, setActiveBranch] = useState(null)
   const [createdCopyCount, setCreatedCopyCount] = useState(0)
   const [copiedItems, setCopiedItems] = useState([])
   const branchCountObj = useRef({})
 
   useEffect(() => {
     const listener = (e) => {
+      if (!activeBranch) { return null }
       if (e.ctrlKey === true) {
         if (e.keyCode === 65) {
           // Pressing "ctrl + a"
           let newItem
-          if (activeBranch === DEFAULT_ACTIVE_BRANCH) {
+          if (activeBranch === ROOT_BRANCH) {
             newItem = copy(rootItem)
           } else {
             let copyItem = copiedItems.find((item) => {
               return item.stateIdentifier === activeBranch
             })
+            if (!copyItem) { return }
             copyItem = { ...copyItem }
             delete copyItem.stateIdentifier
 
@@ -58,7 +60,7 @@ export const useCopyControl = ({ item: rootItem, copy }) => {
   }, [copiedItems, createdCopyCount, activeBranch])
 
   const reset = useCallback(() => {
-    setActiveBranch(DEFAULT_ACTIVE_BRANCH)
+    setActiveBranch(null)
     setCreatedCopyCount(0)
     setCopiedItems([])
     branchCountObj.current = {}

@@ -219,6 +219,10 @@ const Puzzle15Container = function ({
     onActive(stateIdentifier)
   }, [stateIdentifier])
 
+  const onBlur = useCallback(() => {
+    onActive(null)
+  }, [])
+
   return (
     <VisualizerContext.Provider
       value={{
@@ -234,6 +238,7 @@ const Puzzle15Container = function ({
         style={{ width: columnCount * 40 }}
         tabIndex={-1}
         onFocus={onFocus}
+        onBlur={onBlur}
       >
         {boxes.map((box) => {
           return <Box key={box.id} {...box} />
