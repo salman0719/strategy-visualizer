@@ -5,6 +5,7 @@ import Tile from './Tile'
 import getObj from '../../../Util/getObj'
 import { useForceUpdate } from '../../../Util/hooks'
 import { DEFAULT_COLUMNS } from './Constants'
+import { BOX_WIDTH } from '../../../Util/constants'
 
 const Puzzle15Container = function ({
   columnCount,
@@ -233,9 +234,7 @@ const Puzzle15Container = function ({
     >
       <div
         className='position-relative d-inline-block overflow-visible fifteen-puzzle-container m-2'
-        // TODO
-        // Magic number of `40` needs to be handled
-        style={{ width: columnCount * 40 }}
+        style={{ width: columnCount * BOX_WIDTH }}
         tabIndex={-1}
         onFocus={onFocus}
         onBlur={onBlur}
@@ -249,9 +248,7 @@ const Puzzle15Container = function ({
         })}
 
         <div
-          className={
-            'd-none state-identifier' + (isActiveBranch ? ' active' : '')
-          }
+          className='d-none state-identifier'
           onClick={onActive}
         >
           {stateIdentifier}

@@ -1,16 +1,12 @@
-import React, { useContext, useEffect, useState } from 'react'
-import VisualizerContext from './Context'
+import React, { useEffect, useState } from 'react'
+import { BOX_WIDTH } from '../../../Util/constants'
 
-const Soldier = function ({ id, className, boxId, onClick, number }) {
-  const { boxes } = useContext(VisualizerContext)
-
+const Soldier = function ({ className, boxIndex, onClick, number }) {
   const [left, setLeft] = useState(10)
 
   useEffect(() => {
-    // TODO
-    // Instead of `42`, use variables that can span across js and css
-    setLeft(10 + boxes.find((box) => box.id === boxId).index * 42)
-  }, [boxId])
+    boxIndex != null && setLeft(10 + boxIndex * BOX_WIDTH)
+  }, [boxIndex])
 
   return (
     <div

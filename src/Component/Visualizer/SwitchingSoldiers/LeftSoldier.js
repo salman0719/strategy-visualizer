@@ -45,7 +45,7 @@ const LeftSoldier = function (props) {
     [id, boxId]
   )
 
-  return <Soldier onClick={onClick} className="left-soldier" {...props} />
+  return <Soldier onClick={onClick} className='left-soldier' {...props} />
 }
 
 export default LeftSoldier

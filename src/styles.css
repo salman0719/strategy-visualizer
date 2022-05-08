@@ -2,26 +2,29 @@
   font-family: sans-serif;
   text-align: center;
   min-height: 100vh;
-  /* display: flex; */
   align-items: center;
 }
 
 .box {
   display: inline-block;
-  width: 40px;
-  height: 40px;
+  width: var(--box-width);
+  height: var(--box-width);
   border: 1px solid #ccc;
   border-radius: 1px;
-  margin-right: 2px;
   position: relative;
   vertical-align: top;
+  border-right-width: 0px;
 }
 
-.box > small {
+.box:last-child {
+  border-right-width: 1px;
+}
+
+.box>small {
   position: absolute;
   width: 100%;
   left: 0px;
-  top: 40px;
+  top: var(--box-width);
 }
 
 .feedback {
@@ -38,6 +41,16 @@
   padding-left: 5px;
   text-align: left;
   margin-bottom: 5px;
+}
+
+.state-identifier {
+  position: absolute;
+  top: 8px;
+  right: 100%;
+  margin-right: 10px;
+  color: #cddede;
+  font-weight: bold;
+  white-space: nowrap;
 }
 
 .w-200 {

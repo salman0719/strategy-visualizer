@@ -2,7 +2,8 @@ import getObj from '../../../../Util/getObj'
 import { getUniqueID } from '../../../../Util/getUniqueId'
 import { templatePredicateForOne, templatePredicateForTwo } from '../../../../Util/predicate'
 import shuffle from '../../../../Util/shuffle'
-import { DEFAULT_COLUMNS, DEFAULT_ROWS, PREDICATE_KEY } from '../Constants'
+import { DEFAULT_COLUMNS, DEFAULT_ROWS } from '../Constants'
+import { PREDICATE_KEY } from '../../../../Util/constants'
 
 export default function initialize(props) {
   const columnCount = parseInt(props.columnCount) || DEFAULT_COLUMNS

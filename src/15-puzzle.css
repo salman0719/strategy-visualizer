@@ -4,14 +4,19 @@
 
 .fifteen-puzzle-container:focus {
   outline: 2px solid #22673c;
+  box-shadow: 0 8px 17px 2px rgb(0 0 0 / 14%), 0 3px 14px 2px rgb(0 0 0 / 12%), 0 5px 5px -3px rgb(0 0 0 / 20%);
+}
+
+.fifteen-puzzle-box {
+  border-right-width: 1px;
 }
 
 .tile {
   left: 0px;
   position: absolute;
   top: 0px;
-  width: 40px;
-  height: 40px;
+  width: var(--box-width);
+  height: var(--box-width);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -23,16 +28,6 @@
 
 .tile>small {
   color: #fff;
-  /* background-color: rgb(132, 226, 168); */
-}
-
-.state-identifier {
-  position: absolute;
-  top: 8px;
-  right: 100%;
-  margin-right: 10px;
-  color: #cddede;
-  font-weight: bold;
 }
 
 .state-identifier.active {

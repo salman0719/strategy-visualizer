@@ -1,5 +1,5 @@
 import { createContext } from 'react'
 
-const VisualizerContext = createContext()
+const SwitchingSoldiersContext = createContext()
 
-export default VisualizerContext
+export default SwitchingSoldiersContext

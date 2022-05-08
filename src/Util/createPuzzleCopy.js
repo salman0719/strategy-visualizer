@@ -1,7 +1,7 @@
-import { PREDICATE_KEY } from '../../../../Util/constants'
-import getObj from '../../../../Util/getObj'
+import { PREDICATE_KEY } from './constants'
+import getObj from './getObj'
 
-export default function copy(data) {
+export default function createPuzzleCopy(data) {
   if (!(PREDICATE_KEY in data)) {
     throw new Error('No predicate information found to copy! Use `' + PREDICATE_KEY +
       '` to send predicate collection as an object.')

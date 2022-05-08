@@ -1,30 +1,24 @@
 import '../../../switching-soldiers.css'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Container } from 'react-bootstrap'
-import { getUniqueID } from '../../../Util/getUniqueId'
+import React, { useCallback, useRef } from 'react'
 import Box from './Box'
 import VisualizerContext from './Context'
 import LeftSoldier from './LeftSoldier'
 import RightSoldier from './RightSoldier'
-import toast from '../../Toast'
-import {
-  ground,
-  groundClear,
-  leftPerson,
-  nextGround,
-  onGround,
-  rightPerson
-} from './Util/Predicates'
+import { useForceUpdate } from '../../../Util/hooks'
 
 const SwitchingSoldiersPuzzleContainer = function ({
   leftPersons,
   rightPersons,
   boxes,
+  predicates,
   stateIdentifier,
   onActive,
   isActiveBranch
 }) {
-  const [stateKey, setStateKey] = useState('')
+  const forceUpdate = useForceUpdate()
+
+  const { ground, groundClear, leftPerson,
+    nextGround, onGround, rightPerson } = predicates
 
   const leftPersonShouldJump = useRef(false)
   const rightPersonShouldJump = useRef(false)
@@ -42,7 +36,8 @@ const SwitchingSoldiersPuzzleContainer = function ({
     }
 
     return false
-  }, [])
+  }, [predicates])
+
   const leftPersonMove = useCallback((leftPersonId, from, to) => {
     if (leftPersonMoveApplicable(leftPersonId, from, to)) {
       onGround.not(leftPersonId, from)
@@ -53,15 +48,9 @@ const SwitchingSoldiersPuzzleContainer = function ({
       leftPersonShouldJump.current = false
       rightPersonShouldJump.current = true
 
-      // TODO
-      // Later on, we will omit this so that predicate can control them alone!
-      leftPersons.find((lp) => lp.id === leftPersonId).boxId = to
-
-      // TEMP
-      // A temporary way to update the component
-      setStateKey(getUniqueID())
+      forceUpdate()
     }
-  }, [])
+  }, [predicates])
 
   const leftPersonJumpApplicable = useCallback(
     (leftPersonId, from, middle, middlePersonId, to) => {
@@ -80,8 +69,9 @@ const SwitchingSoldiersPuzzleContainer = function ({
         return true
       }
     },
-    []
+    [predicates]
   )
+
   const leftPersonJump = useCallback(
     (leftPersonId, from, middle, middlePersonId, to) => {
       if (
@@ -95,16 +85,10 @@ const SwitchingSoldiersPuzzleContainer = function ({
         rightPersonShouldJump.current = false
         leftPersonShouldJump.current = true
 
-        // TODO
-        // Later on, we will omit this so that predicate can control them alone!
-        leftPersons.find((lp) => lp.id === leftPersonId).boxId = to
-
-        // TEMP
-        // A temporary way to update the component
-        setStateKey(getUniqueID())
+        forceUpdate()
       }
     },
-    []
+    [predicates]
   )
 
   const rightPersonMoveApplicable = useCallback((rightPersonId, from, to) => {
@@ -120,25 +104,21 @@ const SwitchingSoldiersPuzzleContainer = function ({
     }
 
     return false
-  }, [])
+  }, [predicates])
+
   const rightPersonMove = useCallback((rightPersonId, from, to) => {
     if (rightPersonMoveApplicable(rightPersonId, from, to)) {
       onGround.not(rightPersonId, from)
       onGround(rightPersonId, to)
       groundClear.not(to)
       groundClear(from)
+
       leftPersonShouldJump.current = true
       rightPersonShouldJump.current = false
 
-      // TODO
-      // Later on, we will omit this so that predicate can control them alone!
-      rightPersons.find((rp) => rp.id === rightPersonId).boxId = to
-
-      // TEMP
-      // A temporary way to update the component
-      setStateKey(getUniqueID())
+      forceUpdate()
     }
-  }, [])
+  }, [predicates])
 
   const rightPersonJumpApplicable = useCallback(
     (rightPersonId, from, middle, middlePersonId, to) => {
@@ -157,7 +137,7 @@ const SwitchingSoldiersPuzzleContainer = function ({
         return true
       }
     },
-    []
+    [predicates]
   )
   const rightPersonJump = useCallback(
     (rightPersonId, from, middle, middlePersonId, to) => {
@@ -177,149 +157,19 @@ const SwitchingSoldiersPuzzleContainer = function ({
         leftPersonShouldJump.current = false
         rightPersonShouldJump.current = true
 
-        // TODO
-        // Later on, we will omit this so that predicate can control them alone!
-        rightPersons.find((rp) => rp.id === rightPersonId).boxId = to
-
-        // TEMP
-        // A temporary way to update the component
-        setStateKey(getUniqueID())
+        forceUpdate()
       }
     },
-    []
+    [predicates]
   )
 
-  const getMoves = useCallback((findIfMovePossible = false) => {
-    let moves = []
+  const onFocus = useCallback(() => {
+    onActive(stateIdentifier)
+  }, [stateIdentifier])
 
-    for (let lp of leftPersons) {
-      let { boxId, id } = lp
-      let nextBox = boxes.find((box) => nextGround.has(boxId, box.id))
-      let nextBoxId
-      if (nextBox) {
-        nextBoxId = nextBox.id
-        if (leftPersonMoveApplicable(id, boxId, nextBoxId)) {
-          moves.push(['leftPersonMove', [id, boxId, nextBoxId]])
-          if (findIfMovePossible) {
-            break
-          }
-        }
-
-        const nextToNextBox = boxes.find((box) =>
-          nextGround.has(nextBoxId, box.id)
-        )
-        const nextRightPerson = rightPersons.find(
-          (rp) => rp.boxId === nextBoxId
-        )
-        if (
-          nextToNextBox &&
-          nextRightPerson &&
-          leftPersonJumpApplicable(
-            id,
-            boxId,
-            nextBoxId,
-            nextRightPerson.id,
-            nextToNextBox.id
-          )
-        ) {
-          moves.push([
-            'leftPersonJump',
-            [id, boxId, nextBoxId, nextRightPerson.id, nextToNextBox.id]
-          ])
-          if (findIfMovePossible) {
-            break
-          }
-        }
-      }
-    }
-
-    if (!findIfMovePossible || !moves.length) {
-      for (let rp of rightPersons) {
-        let { boxId, id } = rp
-        let prevBox = boxes.find((box) => nextGround.has(box.id, boxId))
-        let prevBoxId
-        if (prevBox) {
-          prevBoxId = prevBox.id
-          if (rightPersonMoveApplicable(id, boxId, prevBoxId)) {
-            moves.push(['rightPersonMove', [id, boxId, prevBoxId]])
-            if (findIfMovePossible) {
-              break
-            }
-          }
-
-          const prevToPrevBox = boxes.find((box) =>
-            nextGround.has(box.id, prevBoxId)
-          )
-          const nextLeftPerson = leftPersons.find(
-            (lp) => lp.boxId === prevBoxId
-          )
-          if (
-            prevToPrevBox &&
-            nextLeftPerson &&
-            rightPersonJumpApplicable(
-              id,
-              boxId,
-              prevBoxId,
-              nextLeftPerson.id,
-              prevToPrevBox.id
-            )
-          ) {
-            moves.push([
-              'rightPersonJump',
-              [id, boxId, prevBoxId, nextLeftPerson.id, prevToPrevBox.id]
-            ])
-            if (findIfMovePossible) {
-              break
-            }
-          }
-        }
-      }
-    }
-
-    if (findIfMovePossible) return moves.length > 0
-
-    return moves
+  const onBlur = useCallback(() => {
+    onActive(null)
   }, [])
-
-  useEffect(() => {
-    if (true) {
-      return
-    }
-
-    // TEMP
-    // Determines if the puzzle is solved or the game is over!
-    if (!getMoves(true)) {
-      setIsGameOver(true)
-      setIsSolving(false)
-
-      let puzzleBlocked = false,
-        boxIndex = 0
-      for (let person of rightPersons) {
-        if (person.boxId !== boxes[boxIndex].id) {
-          puzzleBlocked = true
-          break
-        }
-        boxIndex++
-      }
-
-      if (!puzzleBlocked) {
-        boxIndex = boxes.length - leftPersons.length
-        for (let person of leftPersons) {
-          if (person.boxId !== boxes[boxIndex].id) {
-            puzzleBlocked = true
-            break
-          }
-          boxIndex++
-        }
-      }
-
-      if (puzzleBlocked) {
-        toast.warning('Game over!')
-      } else {
-        toast.success('Puzzle successfully solved!')
-      }
-    }
-  }, [stateKey])
 
   return (
     <VisualizerContext.Provider
@@ -328,12 +178,10 @@ const SwitchingSoldiersPuzzleContainer = function ({
         leftPersons,
         rightPersons,
 
-        leftPerson,
-        rightPerson,
-        ground,
-        onGround,
-        nextGround,
-        groundClear,
+        // TEMP
+        // TODO
+        // Eliminate the need to use predicates inside the item's component
+        ...predicates,
 
         leftPersonMoveApplicable,
         leftPersonMove,
@@ -346,27 +194,32 @@ const SwitchingSoldiersPuzzleContainer = function ({
         rightPersonJump
       }}
     >
-      <Container className="mt-4">
-        <div className="position-relative d-inline-block text-nowrap overflow-visible">
+      <div
+        className='position-relative d-inline-block overflow-visible switching-soldiers-container mt-2 mb-3 mx-2'
+        tabIndex={-1}
+        onFocus={onFocus}
+        onBlur={onBlur}
+      >
+        <div>
           {boxes.map((box) => {
             return <Box key={box.id} {...box} />
           })}
-
-          {leftPersons.map((lp) => {
-            return <LeftSoldier key={lp.id} {...lp} />
-          })}
-
-          {rightPersons.map((rp) => {
-            return <RightSoldier key={rp.id} {...rp} />
-          })}
-          <div
-            className={'state-identifier' + (isActiveBranch ? ' active' : '')}
-            onClick={onActive}
-          >
-            {stateIdentifier}
-          </div>
         </div>
-      </Container>
+
+        {leftPersons.map((lp) => {
+          return <LeftSoldier key={lp.id} {...lp} />
+        })}
+
+        {rightPersons.map((rp) => {
+          return <RightSoldier key={rp.id} {...rp} />
+        })}
+        <div
+          className='d-none state-identifier'
+          onClick={onActive}
+        >
+          {stateIdentifier}
+        </div>
+      </div>
     </VisualizerContext.Provider>
   )
 }

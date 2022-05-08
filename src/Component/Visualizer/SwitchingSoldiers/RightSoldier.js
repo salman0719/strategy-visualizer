@@ -43,7 +43,7 @@ const RightSoldier = function (props) {
     [id, boxId]
   )
 
-  return <Soldier onClick={onClick} className="right-soldier" {...props} />
+  return <Soldier onClick={onClick} className='right-soldier' {...props} />
 }
 
 export default RightSoldier

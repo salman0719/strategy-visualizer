@@ -5,8 +5,8 @@ import initialize from './Util/Initialize'
 import copy from './Util/Copy'
 import Puzzle15Container from './PuzzleContainer'
 import { useCopyControl, useDocumentTitle } from '../../../Util/hooks'
-import { DEFAULT_COLUMNS, DEFAULT_ROWS, PREDICATE_KEY } from './Constants'
-import { ROOT_BRANCH } from '../../../Util/constants'
+import { DEFAULT_COLUMNS, DEFAULT_ROWS } from './Constants'
+import { ROOT_BRANCH, PREDICATE_KEY } from '../../../Util/constants'
 
 const Puzzle15Visualizer = function () {
   useDocumentTitle('15 Puzzle')
@@ -16,11 +16,9 @@ const Puzzle15Visualizer = function () {
     rowCount: DEFAULT_ROWS
   })
   const { columnCount, rowCount } = formValues
-  const [puzzleItem, setPuzzleItem] = useState(() => {
-    return initialize({ columnCount, rowCount })
-  })
-  const { boxes, tiles } = puzzleItem
-  const predicates = puzzleItem[PREDICATE_KEY]
+  const [puzzleItem, setPuzzleItem] = useState(null)
+  const { boxes, tiles } = puzzleItem || { boxes: [], tiles: [] }
+  const predicates = puzzleItem?.[PREDICATE_KEY] || {}
   const { activeBranch, copiedItems,
     set: setCopyControl, reset: resetCopyControl } = useCopyControl({ item: puzzleItem, copy })
 
@@ -45,6 +43,8 @@ const Puzzle15Visualizer = function () {
   useEffect(() => {
     updatePuzzleItem({ columnCount, rowCount })
   }, [columnCount, rowCount])
+
+  if (!puzzleItem) { return null }
 
   return (
     <Container className='mt-5'>

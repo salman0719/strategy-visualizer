@@ -1,3 +1,4 @@
+import './root_css_constants.css'
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 

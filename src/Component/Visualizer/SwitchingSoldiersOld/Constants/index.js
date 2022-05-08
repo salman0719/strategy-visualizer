@@ -1,0 +1,3 @@
+export const DEFAULT_PERSON_COUNT = 3
+export const DEFAULT_EMPTY_GROUND_COUNT = 1
+export const DEFAULT_SOLVE_STEP_DELAY = 2500
