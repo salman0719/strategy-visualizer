@@ -15,15 +15,15 @@ const Tile = function (props) {
   const [top, setTop] = useState(0)
 
   useEffect(() => {
-    if (boxId) {
+    const update = () => {
       setLeft(posX * BOX_WIDTH)
       setTop(posY * BOX_WIDTH)
     }
-  }, [boxId, posX, posY])
 
-  if (!boxId) {
-    return null
-  }
+    boxId && (!left ? setTimeout(update, 0) : update())
+  }, [boxId])
+
+  if (!boxId) { return null }
 
   return (
     <div
