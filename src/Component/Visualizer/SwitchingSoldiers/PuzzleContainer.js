@@ -12,8 +12,7 @@ const SwitchingSoldiersPuzzleContainer = function ({
   boxes,
   predicates,
   stateIdentifier,
-  onActive,
-  isActiveBranch
+  onActive
 }) {
   const forceUpdate = useForceUpdate()
 

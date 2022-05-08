@@ -5,7 +5,8 @@ const Soldier = function ({ className, boxIndex, onClick, number }) {
   const [left, setLeft] = useState(10)
 
   useEffect(() => {
-    boxIndex != null && setLeft(10 + boxIndex * BOX_WIDTH)
+    const update = () => { setLeft(10 + boxIndex * BOX_WIDTH) }
+    boxIndex != null && (left === 10 ? setTimeout(update, 0) : update())
   }, [boxIndex])
 
   return (

@@ -2,15 +2,17 @@ import '../../../15-puzzle.css'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Container, Button, Col, Form } from 'react-bootstrap'
 import initialize from './Util/Initialize'
-import copy from './Util/Copy'
 import Puzzle15Container from './PuzzleContainer'
 import { useCopyControl, useDocumentTitle } from '../../../Util/hooks'
 import { DEFAULT_COLUMNS, DEFAULT_ROWS } from './Constants'
 import { ROOT_BRANCH, PREDICATE_KEY } from '../../../Util/constants'
+import createPuzzleCopy from '../../../Util/createPuzzleCopy'
+import { getUniqueID } from '../../../Util/getUniqueId'
 
 const Puzzle15Visualizer = function () {
   useDocumentTitle('15 Puzzle')
 
+  const [resetToken, setResetToken] = useState(null)
   const [formValues, setFormValues] = useState({
     columnCount: DEFAULT_COLUMNS,
     rowCount: DEFAULT_ROWS
@@ -19,8 +21,7 @@ const Puzzle15Visualizer = function () {
   const [puzzleItem, setPuzzleItem] = useState(null)
   const { boxes, tiles } = puzzleItem || { boxes: [], tiles: [] }
   const predicates = puzzleItem?.[PREDICATE_KEY] || {}
-  const { activeBranch, copiedItems,
-    set: setCopyControl, reset: resetCopyControl } = useCopyControl({ item: puzzleItem, copy })
+  const { copiedItems, set: setCopyControl, reset: resetCopyControl } = useCopyControl({ item: puzzleItem, copy: createPuzzleCopy })
 
   const updatePuzzleItem = useCallback((initArg) => {
     setPuzzleItem(initialize(initArg))
@@ -29,6 +30,7 @@ const Puzzle15Visualizer = function () {
 
   const reset = useCallback(() => {
     setFormValues({ ...formValues })
+    setResetToken(getUniqueID())
   }, [])
 
   const updateFormValue = useCallback((e) => {
@@ -42,7 +44,7 @@ const Puzzle15Visualizer = function () {
 
   useEffect(() => {
     updatePuzzleItem({ columnCount, rowCount })
-  }, [columnCount, rowCount])
+  }, [columnCount, rowCount, resetToken])
 
   if (!puzzleItem) { return null }
 
@@ -89,7 +91,6 @@ const Puzzle15Visualizer = function () {
         predicates={predicates}
         stateIdentifier={ROOT_BRANCH}
         onActive={onActive}
-        isActiveBranch={activeBranch === ROOT_BRANCH}
       />
 
       <Col md={6} className='justify-content-center m-auto'>
@@ -106,7 +107,6 @@ const Puzzle15Visualizer = function () {
               predicates={predicates}
               stateIdentifier={stateIdentifier}
               onActive={onActive}
-              isActiveBranch={activeBranch === stateIdentifier}
             />
           )
         })}

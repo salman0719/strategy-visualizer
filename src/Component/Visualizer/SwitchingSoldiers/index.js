@@ -7,10 +7,12 @@ import createPuzzleCopy from '../../../Util/createPuzzleCopy'
 import SwitchingSoldiersPuzzleContainer from './PuzzleContainer'
 import { useCopyControl, useDocumentTitle } from '../../../Util/hooks'
 import { ROOT_BRANCH, PREDICATE_KEY } from '../../../Util/constants'
+import { getUniqueID } from '../../../Util/getUniqueId'
 
 const SwitchingSoldiersVisualizer = function () {
   useDocumentTitle('Switching Soldiers')
 
+  const [resetToken, setResetToken] = useState(null)
   const [formValues, setFormValues] = useState({
     leftPersonCount: DEFAULT_PERSON_COUNT,
     rightPersonCount: DEFAULT_PERSON_COUNT,
@@ -20,8 +22,7 @@ const SwitchingSoldiersVisualizer = function () {
   const [puzzleItem, setPuzzleItem] = useState(null)
   const { boxes, leftPersons, rightPersons } = puzzleItem || { boxes: [], leftPersons: [], rightPersons: [] }
   const predicates = puzzleItem?.[PREDICATE_KEY] || {}
-  const { activeBranch, copiedItems,
-    set: setCopyControl, reset: resetCopyControl } = useCopyControl({ item: puzzleItem, copy: createPuzzleCopy })
+  const { copiedItems, set: setCopyControl, reset: resetCopyControl } = useCopyControl({ item: puzzleItem, copy: createPuzzleCopy })
 
   const updatePuzzleItem = useCallback((initArg) => {
     setPuzzleItem(initialize(initArg))
@@ -30,6 +31,7 @@ const SwitchingSoldiersVisualizer = function () {
 
   const reset = useCallback(() => {
     setFormValues({ ...formValues })
+    setResetToken(getUniqueID())
   }, [])
 
   const updateFormValue = useCallback((e) => {
@@ -43,7 +45,7 @@ const SwitchingSoldiersVisualizer = function () {
 
   useEffect(() => {
     updatePuzzleItem({ leftPersonCount, rightPersonCount, emptyGroundCount })
-  }, [leftPersonCount, rightPersonCount, emptyGroundCount])
+  }, [leftPersonCount, rightPersonCount, emptyGroundCount, resetToken])
 
   if (!puzzleItem) { return null }
 
@@ -99,7 +101,6 @@ const SwitchingSoldiersVisualizer = function () {
         predicates={predicates}
         stateIdentifier={ROOT_BRANCH}
         onActive={onActive}
-        isActiveBranch={activeBranch === ROOT_BRANCH}
       />
 
       <Col md={6} className='justify-content-center m-auto'>
@@ -116,7 +117,6 @@ const SwitchingSoldiersVisualizer = function () {
               predicates={predicates}
               stateIdentifier={stateIdentifier}
               onActive={onActive}
-              isActiveBranch={activeBranch === stateIdentifier}
             />
           )
         })}

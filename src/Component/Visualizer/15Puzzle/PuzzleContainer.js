@@ -13,8 +13,7 @@ const Puzzle15Container = function ({
   boxes,
   predicates,
   stateIdentifier,
-  onActive,
-  isActiveBranch
+  onActive
 }) {
   const forceUpdate = useForceUpdate()
 
