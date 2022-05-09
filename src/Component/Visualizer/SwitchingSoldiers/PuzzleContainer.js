@@ -453,23 +453,23 @@ const SwitchingSoldiersPuzzleContainer = forwardRef(function ({
           onBlur: null,
           onClick: (e) => {
             document.activeElement.blur()
-            isPlaying && onRequestUpdate(stateIdentifier)
+            stateIdentifier !== ROOT_BRANCH && isPlaying && onRequestUpdate(stateIdentifier)
           }
         } : null)}
       >
-        <div className={'puzzle-box text-nowrap' + (stateIdentifier !== ROOT_BRANCH && initialMove?.[2]?.success ? ' success' : '')}>
+        <div className={'puzzle-box text-nowrap' + (stateIdentifier !== ROOT_BRANCH && initialMove?.[2]?.success && (!isPuzzleOver || isPuzzleSolved) ? ' success' : '')}>
           {boxes.map((box) => {
             return <Box key={box.id} {...box} />
           })}
         </div>
 
-        <div className={'text-nowrap' + (stateIdentifier !== ROOT_BRANCH ? ' pe-none' : '')}>
+        <div className={'text-nowrap' + (isPlaying || isAutoPlaying ? ' pe-none' : '')}>
           {leftPersons.map((lp) => {
             return <LeftSoldier key={lp.id} {...lp} />
           })}
         </div>
 
-        <div className={'text-nowrap' + (stateIdentifier !== ROOT_BRANCH ? ' pe-none' : '')}>
+        <div className={'text-nowrap' + (isPlaying || isAutoPlaying ? ' pe-none' : '')}>
           {rightPersons.map((rp) => {
             return <RightSoldier key={rp.id} {...rp} />
           })}

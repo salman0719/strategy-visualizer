@@ -123,7 +123,7 @@ const SwitchingSoldiersVisualizer = function () {
         if (info.evenDistanceCount > 0) {
           message = `Creates (${info.evenDistanceCount}) even distance. (Strategy: Try to create even distance if no jumping move is available)`
         } else {
-          message = 'Not a strategic move. Only play if no other suitable move has been found.'
+          message = moves.length === 1 ? 'Only move available.' : 'Not a strategic move. Only play if no other suitable move has been found.'
         }
       }
 
@@ -175,7 +175,7 @@ const SwitchingSoldiersVisualizer = function () {
   const [isPlaying, setIsPlaying] = useState(false)
   const togglePlay = useCallback(() => {
     setIsPlaying(!isPlaying)
-    !isPlaying && window.dispatchEvent(new CustomEvent('display-moves'))
+    !isPlaying ? window.dispatchEvent(new CustomEvent('display-moves')) : resetCopyControl()
   }, [isPlaying])
 
   const [hideDisplay, setHideDisplay] = useState(false)
@@ -188,6 +188,7 @@ const SwitchingSoldiersVisualizer = function () {
   const [isAutoPlaying, setIsAutoPlaying] = useState(false)
   const toggleAutoPlay = useCallback(() => {
     setIsAutoPlaying(!isAutoPlaying)
+    isAutoPlaying && resetCopyControl()
   }, [isAutoPlaying])
   useEffect(() => {
     if (isAutoPlaying) {
@@ -338,6 +339,8 @@ const SwitchingSoldiersVisualizer = function () {
         predicates={predicates}
         stateIdentifier={ROOT_BRANCH}
         onActive={onActive}
+        isPlaying={isPlaying}
+        isAutoPlaying={isAutoPlaying}
       />
 
       <Col ref={copyContainerRef} className='justify-content-center m-auto'>
