@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { BOX_WIDTH } from '../../../Util/constants'
+import SwitchingSoldiersContext from './Context'
 
-const Soldier = function ({ className, boxIndex, onClick, number }) {
+const Soldier = function ({ id, className, boxIndex, onClick, number }) {
+  const { activePersonId } = useContext(SwitchingSoldiersContext)
   const [left, setLeft] = useState(10)
 
   useEffect(() => {
@@ -12,7 +14,7 @@ const Soldier = function ({ className, boxIndex, onClick, number }) {
   return (
     <div
       style={{ left }}
-      className={'soldier' + (className ? ' ' + className : '')}
+      className={'soldier' + (className ? ' ' + className : '') + (id === activePersonId ? ' active' : '')}
       onClick={onClick}
     >
       <small>{number}</small>

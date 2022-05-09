@@ -1,14 +1,19 @@
 import './root_css_constants.css'
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
 
-import App from "./App";
+import App from "./App"
 
-const rootElement = document.getElementById("root");
-const root = createRoot(rootElement);
+const rootElement = document.getElementById("root")
+const root = createRoot(rootElement)
 
-root.render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+// TEMP
+// Temporarily rendering without StrictMode
+
+root.render(<App />)
+
+// root.render(
+//   <StrictMode>
+//     <App />
+//   </StrictMode>
+// )

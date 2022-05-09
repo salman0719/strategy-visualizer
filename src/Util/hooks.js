@@ -70,7 +70,8 @@ export const useCopyControl = ({ item: rootItem, copy }) => {
     activeBranch,
     copiedItems,
     set: {
-      activeBranch: setActiveBranch
+      activeBranch: setActiveBranch,
+      copiedItems: setCopiedItems
     },
     reset
   }

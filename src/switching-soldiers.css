@@ -1,10 +1,14 @@
-.switching-soldiers-container:focus {
+.switching-soldiers-container:not(.puzzle-solved):not(.puzzle-over):focus {
   box-shadow: 0 8px 17px 2px rgb(0 0 0 / 14%), 0 3px 14px 2px rgb(0 0 0 / 12%), 0 5px 5px -3px rgb(0 0 0 / 20%);
   outline: 1px solid #9494a7;
 }
 
 .switching-soldiers-container:focus>.state-identifier {
   color: #026177;
+}
+
+.switching-soldiers-container>.success {
+  outline: 1px solid #549f22;
 }
 
 .soldier {
@@ -32,4 +36,14 @@
 
 .right-soldier {
   background-color: rgb(173, 132, 226);
+}
+
+.left-soldier.active {
+  background-color: #8d9f30;
+  border: 2px solid #4b5516;
+}
+
+.right-soldier.active {
+  background-color: #82309d;
+  border: 2px solid #200729;
 }

@@ -42,7 +42,7 @@ const LeftSoldier = function (props) {
           )
       }
     },
-    [id, boxId]
+    [id, boxId, leftPersonMoveApplicable, leftPersonMove, leftPersonJump]
   )
 
   return <Soldier onClick={onClick} className='left-soldier' {...props} />

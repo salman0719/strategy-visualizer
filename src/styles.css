@@ -56,3 +56,45 @@
 .w-200 {
   width: 200px;
 }
+
+.puzzle-solved-icon {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  color: green;
+  background-color: white;
+}
+
+.puzzle-over-icon {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  color: red;
+  background-color: white;
+}
+
+.puzzle-solved>.puzzle-box,
+.puzzle-over>.puzzle-box {
+  border-radius: 4px;
+  margin-left: -3px;
+  margin-top: -1px;
+}
+
+.puzzle-solved>.puzzle-box {
+  border: 2px solid green;
+}
+
+.puzzle-over>.puzzle-box {
+  border: 2px solid red;
+}
+
+.puzzle-solved>.puzzle-box>.box,
+.puzzle-over>.puzzle-box>.box {
+  border-bottom-width: 0px;
+  border-top-width: 0px;
+}
+
+.puzzle-solved>.puzzle-box>.box:first-child,
+.puzzle-over>.puzzle-box>.box:first-child {
+  border-left-width: 0px;
+}
