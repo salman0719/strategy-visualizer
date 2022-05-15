@@ -19,7 +19,12 @@ const Puzzle15Container = forwardRef(function ({
   onRequestApplyMove,
   isPlaying,
   isAutoPlaying,
-  initialMove,
+
+  // TEMP
+  // NOTE
+  // Maybe we need to ponder the implementation of the following attribute in 
+  // a different way
+  providerExtension,
 
   // TEMP
   rootUsedStates
@@ -161,7 +166,7 @@ const Puzzle15Container = forwardRef(function ({
     getUsedStates: () => (usedStates),
     isSolved: () => (isPuzzleSolved),
     isOver: () => (isPuzzleOver)
-  }))
+  }), [predicates])
 
   window.PREDICATES = window.PREDICATES || {}
   window.PREDICATES[stateIdentifier] = predicates
@@ -184,16 +189,6 @@ const Puzzle15Container = forwardRef(function ({
     setIsPuzzleOver(isOver)
   }, [puzzleStateId, predicates])
 
-  const [initialMoveProcessed, setInitialMoveProcessed] = useState(!initialMove)
-  useEffect(() => {
-    if (initialMove) {
-      applyMove(initialMove)
-      setInitialMoveProcessed(true)
-    }
-  }, [])
-
-  if (!initialMoveProcessed) { return null }
-
   // NOTE
   // Not displaying traversed states
   // if (rootUsedStates?.has(tiles.map((tile) => {
@@ -210,8 +205,9 @@ const Puzzle15Container = forwardRef(function ({
         getMove,
 
         // TEMP
-        // Use efficient technique
-        activeTileId: initialMove?.[2]?.activeTileId
+        // NOTE
+        // Domain specific info for the time being
+        ...providerExtension
       }}
     >
       <div
@@ -248,15 +244,12 @@ const Puzzle15Container = forwardRef(function ({
         >
           {stateIdentifier}
         </div>
-        {/* TEMP */}
-        {initialMove?.[2]?.message &&
+
+        {providerExtension?.message &&
           <div className='mt-1' style={{ width: columnCount * BOX_WIDTH }}>
-            {typeof initialMove[2].message === 'function' ?
-              initialMove[2].message({ tiles, boxes, tileObj, boxObj, predicates }) : null}
+            {providerExtension?.message}
           </div>
         }
-        {/* TEMP */}
-        {/* END */}
       </div>
     </VisualizerContext.Provider>
   )

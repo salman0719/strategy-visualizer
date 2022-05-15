@@ -55,15 +55,7 @@ const Puzzle15Visualizer = function () {
   }, [])
 
   const onRequestApplyMove = useCallback((stateIdentifier) => {
-    const newPuzzleItem = { ...copiedItems.find((item) => (item.stateIdentifier === stateIdentifier)) }
-
-    // TODO
-    // This adding and removing `stateIdentifier` business means that if we want to use
-    // it elsewhere, we always have to manually add/remove this - which makes it easy
-    // to make a mistake. Lets adopt another policy!
-    delete newPuzzleItem.stateIdentifier
-
-    setPuzzleItem(createPuzzleCopy(newPuzzleItem))
+    setPuzzleItem(createPuzzleCopy(copiedItems.find((item) => (item.stateIdentifier === stateIdentifier)).puzzleItem))
     resetCopyControl()
 
     // TEMP
@@ -82,17 +74,16 @@ const Puzzle15Visualizer = function () {
   const getBranches = useCallback(() => {
     const moves = rootPuzzleRef.current.getMoves()
 
-    // TODO
-    // Extract the moves implemented inside the PuzzleContainer and take them
-    // to a common source for this puzzle
-
     return moves.map(([moveName, moveArg], index) => {
       const newPuzzleItem = createPuzzleCopy(puzzleItem)
       getActions(newPuzzleItem[PREDICATE_KEY])[moveName].apply(null, moveArg)
 
       return {
-        ...newPuzzleItem,
+        puzzleItem: newPuzzleItem,
         stateIdentifier: 'move-' + index + '-' + getUniqueID(),
+        providerExtension: {
+          activeTileId: moveArg[0]
+        }
         // initialMove: [
         //   moveName, move[1],
         //   {
@@ -377,15 +368,9 @@ const Puzzle15Visualizer = function () {
 
       <Col ref={copyContainerRef} className='justify-content-center m-auto'>
         {copiedItems.map((item) => {
-          const { boxes, tiles, stateIdentifier } = item
-          const predicates = item[PREDICATE_KEY]
-
-          // TEMP
-
-          const initialMove = item.initialMove
-
-          // TEMP
-          // END
+          const { puzzleItem, stateIdentifier, providerExtension } = item
+          const { boxes, tiles } = puzzleItem
+          const predicates = puzzleItem[PREDICATE_KEY]
 
           return (
             <Puzzle15Container
@@ -399,9 +384,7 @@ const Puzzle15Visualizer = function () {
               onRequestApplyMove={onRequestApplyMove}
               isPlaying={isPlaying}
               isAutoPlaying={isAutoPlaying}
-
-              // TEMP
-              initialMove={initialMove}
+              providerExtension={providerExtension}
 
               // TEMP
               rootUsedStates={rootPuzzleRef.current?.getUsedStates() || new Map()}

@@ -14,20 +14,19 @@ export const useCopyControl = ({ item: rootItem, copy }) => {
       if (e.ctrlKey === true) {
         if (e.keyCode === 65) {
           // Pressing "ctrl + a"
-          let newItem
+          let newPuzzleItem
           if (activeBranch === ROOT_BRANCH) {
-            newItem = copy(rootItem)
+            newPuzzleItem = copy(rootItem)
           } else {
             let copyItem = copiedItems.find((item) => {
               return item.stateIdentifier === activeBranch
             })
             if (!copyItem) { return }
-            copyItem = { ...copyItem }
-            delete copyItem.stateIdentifier
 
-            newItem = copy(copyItem)
+            newPuzzleItem = copy(copyItem.puzzleItem)
           }
 
+          const newItem = { puzzleItem: newPuzzleItem }
           const copyNumber = (branchCountObj.current[activeBranch] =
             (branchCountObj.current[activeBranch] || 0) + 1)
           newItem.stateIdentifier = activeBranch + '-' + copyNumber
