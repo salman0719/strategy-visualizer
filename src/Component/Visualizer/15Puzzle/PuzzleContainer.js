@@ -9,6 +9,9 @@ import { getUniqueID } from '../../../Util/getUniqueId'
 import is15PuzzleSolved from './Util/isSolved'
 import { getActions, getPreconditions } from './Util/domain'
 
+// TODO
+// Rename `getPreconditions` to `getValidatePreconditions`
+
 const Puzzle15Container = forwardRef(function ({
   columnCount,
   tiles,
@@ -18,17 +21,14 @@ const Puzzle15Container = forwardRef(function ({
   onActive,
   onRequestApplyMove,
   isPlaying,
-  isAutoPlaying,
 
   // TEMP
   // NOTE
   // Maybe we need to ponder the implementation of the following attribute in 
   // a different way
   providerExtension,
-
-  // TEMP
-  rootUsedStates
 }, ref) {
+  const isRootBranch = stateIdentifier === ROOT_BRANCH
   const [puzzleStateId, setPuzzleStateId] = useState(null)
   const [isPuzzleSolved, setIsPuzzleSolved] = useState(false)
   const [isPuzzleOver, setIsPuzzleOver] = useState(false)
@@ -95,13 +95,16 @@ const Puzzle15Container = forwardRef(function ({
 
       if (fn) {
         return () => {
-          fn(t, from, emp) && setPuzzleStateId(getUniqueID())
+          if (fn(t, from, emp)) {
+            setPuzzleStateId(getUniqueID())
+            isRootBranch && isPlaying && onRequestApplyMove()
+          }
         }
       }
 
       return false
     },
-    [predicates]
+    [predicates, isPlaying]
   )
 
   const onFocus = useCallback(() => {
@@ -153,29 +156,23 @@ const Puzzle15Container = forwardRef(function ({
     }
   }, [predicates])
 
-  const [usedStates] = useState(new Map())
-  useEffect(() => {
-    usedStates.set(tiles.map((tile) => {
-      return tile.number + '-' + tile.boxNumber
-    }).join('|'), true)
-  }, [puzzleStateId, predicates])
-
   useImperativeHandle(ref, () => ({
     getMoves,
     applyMove,
-    getUsedStates: () => (usedStates),
-    isSolved: () => (isPuzzleSolved),
-    isOver: () => (isPuzzleOver)
+    // TODO
+    // Move to a common source like it was done with getActions & getPreconditions
+    // isSolved: () => (isPuzzleSolved),
+    // isOver: () => (isPuzzleOver)
   }), [predicates])
 
-  window.PREDICATES = window.PREDICATES || {}
-  window.PREDICATES[stateIdentifier] = predicates
+  // window.PREDICATES = window.PREDICATES || {}
+  // window.PREDICATES[stateIdentifier] = predicates
 
-  window.APPLY_MOVE = window.APPLY_MOVE || {}
-  window.APPLY_MOVE[stateIdentifier] = applyMove
+  // window.APPLY_MOVE = window.APPLY_MOVE || {}
+  // window.APPLY_MOVE[stateIdentifier] = applyMove
 
-  window.GET_MOVES = window.GET_MOVES || {}
-  window.GET_MOVES[stateIdentifier] = getMoves
+  // window.GET_MOVES = window.GET_MOVES || {}
+  // window.GET_MOVES[stateIdentifier] = getMoves
 
   // TEMP
   // End
@@ -188,14 +185,6 @@ const Puzzle15Container = forwardRef(function ({
     setIsPuzzleSolved(isSolved)
     setIsPuzzleOver(isOver)
   }, [puzzleStateId, predicates])
-
-  // NOTE
-  // Not displaying traversed states
-  // if (rootUsedStates?.has(tiles.map((tile) => {
-  //   return tile.number + '-' + tile.boxNumber
-  // }).join('|'))) {
-  //   return null
-  // }
 
   return (
     <VisualizerContext.Provider
@@ -218,13 +207,13 @@ const Puzzle15Container = forwardRef(function ({
         onBlur={onBlur}
 
         // TEMP
-        {...(isPlaying || isAutoPlaying ? {
+        {...(!isRootBranch && isPlaying ? {
           tabIndex: null,
           onFocus: null,
           onBlur: null,
           onClick: (e) => {
             document.activeElement.blur()
-            stateIdentifier !== ROOT_BRANCH && isPlaying && onRequestApplyMove(stateIdentifier)
+            isPlaying && onRequestApplyMove(stateIdentifier)
           }
         } : null)}
       >
@@ -232,7 +221,7 @@ const Puzzle15Container = forwardRef(function ({
           return <Box key={box.id} {...box} />
         })}
 
-        <div className={isPlaying || isAutoPlaying ? 'pe-none' : null}>
+        <div className={!isRootBranch && isPlaying ? 'pe-none' : null}>
           {tiles.map((tile) => {
             return <Tile key={tile.id} {...tile} />
           })}

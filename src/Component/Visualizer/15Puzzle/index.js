@@ -24,19 +24,19 @@ const Puzzle15Visualizer = function () {
   const { boxes, tiles } = puzzleItem || { boxes: [], tiles: [] }
   const predicates = puzzleItem?.[PREDICATE_KEY] || {}
   const { copiedItems, set: setCopyControl, reset: resetCopyControl } = useCopyControl({ item: puzzleItem, copy: createPuzzleCopy })
-  const [autoPlayInterval, setAutoPlayInterval] = useState(DEFAULT_AUTO_PLAY_INTERVAL)
+  const [feedback, setFeedback] = useState(null)
 
   const updatePuzzleItem = useCallback((initArg) => {
     setPuzzleItem(initialize(initArg))
     setIsPlaying(false)
-    setIsAutoPlaying(false)
+    setFeedback(null)
     resetCopyControl()
   }, [])
 
   const reset = useCallback(() => {
     setFormValues({ ...formValues })
     setIsPlaying(false)
-    setIsAutoPlaying(false)
+    setFeedback(null)
     setResetToken(getUniqueID())
   }, [])
 
@@ -45,17 +45,14 @@ const Puzzle15Visualizer = function () {
     setFormValues({ ...formValues, [name]: value })
   }, [formValues])
 
-  const updateAutoPlayInterval = useCallback((e) => {
-    const value = parseFloat(e.target.value)
-    setAutoPlayInterval(value ? value : DEFAULT_AUTO_PLAY_INTERVAL)
-  }, [])
-
   const onActive = useCallback((stateIdentifier) => {
     setCopyControl.activeBranch(stateIdentifier)
   }, [])
 
   const onRequestApplyMove = useCallback((stateIdentifier) => {
-    setPuzzleItem(createPuzzleCopy(copiedItems.find((item) => (item.stateIdentifier === stateIdentifier)).puzzleItem))
+    if (stateIdentifier) {
+      setPuzzleItem(createPuzzleCopy(copiedItems.find((item) => (item.stateIdentifier === stateIdentifier)).puzzleItem))
+    }
     resetCopyControl()
 
     // TEMP
@@ -64,7 +61,7 @@ const Puzzle15Visualizer = function () {
         window.dispatchEvent(new CustomEvent('display-moves'))
       }, 500)
     }
-  }, [copiedItems, isPlaying, isAutoPlaying])
+  }, [copiedItems, isPlaying])
 
   useEffect(() => {
     updatePuzzleItem({ columnCount, rowCount })
@@ -76,7 +73,8 @@ const Puzzle15Visualizer = function () {
 
     return moves.map(([moveName, moveArg], index) => {
       const newPuzzleItem = createPuzzleCopy(puzzleItem)
-      getActions(newPuzzleItem[PREDICATE_KEY])[moveName].apply(null, moveArg)
+      const predicates = newPuzzleItem[PREDICATE_KEY]
+      getActions(predicates)[moveName].apply(null, moveArg)
 
       return {
         puzzleItem: newPuzzleItem,
@@ -84,89 +82,6 @@ const Puzzle15Visualizer = function () {
         providerExtension: {
           activeTileId: moveArg[0]
         }
-        // initialMove: [
-        //   moveName, move[1],
-        //   {
-        //     message: ({ tiles, boxObj, predicates }) => {
-        //       const getDistance = (items) => {
-        //         return items.reduce((prev, cur) => {
-        //           return prev + Math.abs(cur.posX - cur.expectedPosX) +
-        //             Math.abs(cur.posY - cur.expectedPosY)
-        //         }, 0)
-        //       }
-
-        //       const slices = [
-        //         [tiles.slice(0, 2)],
-        //         [tiles.slice(3, 4), [3]],
-        //         [tiles.slice(2, 3), [7]],
-        //         [tiles.slice(2, 4)]
-        //       ]
-
-        //       let sliceResponse = null
-        //       slices.find((slice, i) => {
-        //         let items = slice[0],
-        //           pos = slice[1]
-
-        //         if (items.find((tile, index) => {
-        //           return tile.boxNumber !== (pos ? pos[index] : i * 2 + index + 1)
-        //         })) {
-        //           // console.log(items.map((item) => (item.number)).join('-') + ' not properly placed!')
-        //           const emptyBoxId = predicates.empty.getAll().keys().next().value
-        //           const emptyBox = boxObj[emptyBoxId]
-        //           const emptyBoxPosX = emptyBox.posX, emptyBoxPosY = emptyBox.posY
-
-        //           let minDistance = Infinity
-        //           items.forEach((item) => {
-        //             let dist = Math.abs(item.posX - emptyBoxPosX) + Math.abs(item.posY - emptyBoxPosY)
-        //             if (dist < minDistance) { minDistance = dist }
-        //           })
-
-        //           const distance = getDistance(items) + minDistance - 1
-
-        //           sliceResponse = 'Tile `' + items.map((item) => (item.number)).join('-') + '`, Distance - `' + distance + '`'
-        //           return true
-        //         }
-
-        //         return false
-        //       })
-
-        //       if (sliceResponse) { return sliceResponse }
-
-        //       // for (let i = 0; i < 4; i++) {
-        //       //   let items = tiles.slice(i * 2, i * 2 + 2)
-        //       //   if (items.find((tile, index) => {
-        //       //     return tile.boxNumber !== i * 2 + index + 1
-        //       //   })) {
-        //       //     console.log(items.map((item) => (item.number)).join('-') + ' not properly placed!')
-        //       //     const emptyBoxId = predicates.empty.getAll().keys().next().value
-        //       //     const emptyBox = boxObj[emptyBoxId]
-        //       //     const emptyBoxPosX = emptyBox.posX, emptyBoxPosY = emptyBox.posY
-
-        //       //     const fstDistance = Math.abs(items[0].posX - emptyBoxPosX) + Math.abs(items[0].posY - emptyBoxPosY)
-        //       //     const sndDistance = Math.abs(items[1].posX - emptyBoxPosX) + Math.abs(items[1].posY - emptyBoxPosY)
-
-        //       //     const distance = getDistance(items) + (fstDistance > sndDistance ? sndDistance : fstDistance) - 1
-
-        //       //     return 'Tile `' + items.map((item) => (item.number)).join('-') + '`, Distance - `' + distance + '`'
-        //       //   }
-        //       // }
-
-        //       // const firstRowTiles = tiles.slice(0, 4)
-        //       // // TODO
-        //       // // Based on goal, this also needs to be adjusted
-        //       // if (firstRowTiles.find((tile, index) => {
-        //       //   return tile.boxNumber !== index + 1
-        //       // })) {
-        //       //   console.log('1-2-3-4 not properly placed!')
-        //       //   return 'First Row, Manhattan Distance - `' + getDistance(firstRowTiles) + '`'
-        //       // }
-
-        //       const manhattanDistance = getDistance(tiles)
-
-        //       return 'Manhattan Distance - `' + manhattanDistance + '`'
-        //     }, success: false, activeTileId: move[1][0]
-        //   }
-        // ]
       }
     })
   }, [puzzleItem])
@@ -174,14 +89,28 @@ const Puzzle15Visualizer = function () {
   useEffect(() => {
     const process = () => {
       setCopyControl.copiedItems(getBranches())
+      const { tiles } = puzzleItem
+      let feedback = null
+
+      if (tiles.slice(0, 4).find((tile, index) => {
+        return tile.boxNumber !== index + 1 + 0
+      })) {
+        feedback = 'Solve the first row first.'
+      } else if (tiles.slice(4, 8).find((tile, index) => {
+        return tile.boxNumber !== index + 1 + 4
+      })) {
+        feedback = "Solve the second row now. Don't move the first row."
+      } else {
+        feedback = "Solve the rest of the puzzle. Don't move the first two rows."
+      }
+
+      setFeedback(feedback)
     }
 
     const listener = (e) => {
       if (e.ctrlKey) {
         // Pressing "ctrl + p"
         if (e.keyCode === 80) {
-          // TODO
-          // Prevent when `isAutoPlaying` is `true`
           process()
         } else {
           return
@@ -214,63 +143,6 @@ const Puzzle15Visualizer = function () {
     setHideDisplay(!hideDisplay)
   }, [hideDisplay])
 
-  const copyContainerRef = useRef(null)
-  const autoPlayingRef = useRef(null)
-  const [isAutoPlaying, setIsAutoPlaying] = useState(false)
-  const toggleAutoPlay = useCallback(() => {
-    setIsAutoPlaying(!isAutoPlaying)
-    isAutoPlaying && resetCopyControl()
-  }, [isAutoPlaying])
-  useEffect(() => {
-    if (isAutoPlaying) {
-      const token = getUniqueID()
-      autoPlayingRef.current = token
-
-      if (hideDisplay) {
-        resetCopyControl()
-      } else {
-        !copyContainerRef.current.firstElementChild && window.dispatchEvent(new CustomEvent('display-moves'))
-      }
-      let applyMove = true
-
-      const fn = () => {
-        if (token === autoPlayingRef.current) {
-          if (applyMove) {
-            const branches = getBranches()
-            if (branches.length) {
-              let move = branches[0].initialMove
-              move = [move[0], move[1]]
-              rootPuzzleRef.current.applyMove(move)
-            } else {
-              setIsAutoPlaying(false)
-            }
-            applyMove = false
-          } else {
-            window.dispatchEvent(new CustomEvent('display-moves'))
-            applyMove = true
-          }
-
-          if (hideDisplay) {
-            applyMove = true
-            setTimeout(fn, autoPlayInterval)
-          } else {
-            if (applyMove) {
-              setTimeout(fn, autoPlayInterval)
-            } else {
-              setTimeout(fn, 300)
-            }
-          }
-
-        }
-      }
-
-      window.setTimeout(fn, autoPlayInterval)
-
-    } else {
-      autoPlayingRef.current = null
-    }
-  }, [isAutoPlaying, autoPlayInterval, puzzleItem, hideDisplay])
-
   // TEMP
   // END
 
@@ -288,25 +160,14 @@ const Puzzle15Visualizer = function () {
           Reset
         </Button>
 
-        {!isAutoPlaying &&
-          <Button
-            onClick={togglePlay}
-            size='sm'
-            variant='primary'
-            className='mb-2 mx-1 position-relative'
-          >
-            {isPlaying ? 'Stop' : 'Play'}
-          </Button>}
-
-        {null && !isPlaying &&
-          <Button
-            onClick={toggleAutoPlay}
-            size='sm'
-            variant='success'
-            className='mb-2 mx-1 position-relative'
-          >
-            {isAutoPlaying ? 'Stop Auto-Play' : 'Auto-Play'}
-          </Button>}
+        <Button
+          onClick={togglePlay}
+          size='sm'
+          variant='primary'
+          className='mb-2 mx-1 position-relative'
+        >
+          {isPlaying ? 'Stop' : 'Play'}
+        </Button>
       </div>
 
       <div>
@@ -329,29 +190,6 @@ const Puzzle15Visualizer = function () {
             placeholder="Row Count"
           />
         </div>
-
-        {null && <div className='mb-2 mx-1 d-inline-block w-200'>
-          <label className='control-label'>Auto Play Interval</label>
-          <Form.Control
-            name='autoPlayInterval'
-            value={autoPlayInterval}
-            onChange={updateAutoPlayInterval}
-            placeholder='Auto Play Interval'
-          />
-        </div>}
-
-        {null && <div className='mb-2 mx-1 d-inline-block w-200 text-start'>
-          <Form.Check
-            type='switch'
-            name='hideDisplay'
-            label='Hide Display'
-            className='d-inline-block'
-            checked={hideDisplay}
-            onChange={toggleHideDisplay}
-            disabled={isAutoPlaying}
-          />
-        </div>}
-
       </div>
 
       <Puzzle15Container
@@ -363,10 +201,12 @@ const Puzzle15Visualizer = function () {
         stateIdentifier={ROOT_BRANCH}
         onActive={onActive}
         isPlaying={isPlaying}
-        isAutoPlaying={isAutoPlaying}
+        onRequestApplyMove={onRequestApplyMove}
       />
 
-      <Col ref={copyContainerRef} className='justify-content-center m-auto'>
+      {feedback && <div>{feedback}</div>}
+
+      <Col className='justify-content-center m-auto'>
         {copiedItems.map((item) => {
           const { puzzleItem, stateIdentifier, providerExtension } = item
           const { boxes, tiles } = puzzleItem
@@ -381,13 +221,10 @@ const Puzzle15Visualizer = function () {
               predicates={predicates}
               stateIdentifier={stateIdentifier}
               onActive={onActive}
-              onRequestApplyMove={onRequestApplyMove}
               isPlaying={isPlaying}
-              isAutoPlaying={isAutoPlaying}
-              providerExtension={providerExtension}
+              onRequestApplyMove={onRequestApplyMove}
 
-              // TEMP
-              rootUsedStates={rootPuzzleRef.current?.getUsedStates() || new Map()}
+              providerExtension={providerExtension}
             />
           )
         })}
