@@ -33,6 +33,7 @@ const SwitchingSoldiersVisualizer = function () {
   const updatePuzzleItem = useCallback((initArg) => {
     setPuzzleItem(initialize(initArg))
     setIsPlaying(false)
+    setIsAutoPlaying(false)
     resetCopyControl()
   }, [])
 

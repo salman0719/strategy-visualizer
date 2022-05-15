@@ -23,7 +23,7 @@ export default function initialize(props) {
     .fill(0)
     .map((_, index) => {
       const id = 'box-' + index + '-' + getUniqueID()
-      return { id, index, number: index + 1 }
+      return { id, index, number: index + 1, posX: index % columnCount, posY: Math.floor(index / columnCount) }
     })
 
   const tileObj = getObj(tiles, 'id')
@@ -42,13 +42,17 @@ export default function initialize(props) {
       tile.boxId = box.id
       tile.posX = boxIndex % columnCount
       tile.posY = Math.floor(boxIndex / columnCount)
+
+      box.tileId = tile.id
     },
-    onNegate: function ({ tiles: tileObj }, tileId) {
+    onNegate: function ({ boxes: boxObj, tiles: tileObj }, tileId, boxId) {
       const tile = tileObj[tileId]
       tile.boxNumber = null
       tile.boxId = null
       tile.posX = null
       tile.posY = null
+
+      boxObj[boxId].tileId = null
     },
   })
   const adjacentuPred = templatePredicateForTwo('adjacentu')
@@ -66,24 +70,33 @@ export default function initialize(props) {
   })
 
   boxes.forEach((box, index) => {
+    const connectedBoxIdObj = {}
+
     if ((index % columnCount) - 1 === (index - 1) % columnCount && index > 0) {
-      adjacentlPred(box.id, boxes[index - 1].id)
+      let connectedId = boxes[index - 1].id
+      adjacentlPred(box.id, connectedId)
+      connectedBoxIdObj[connectedId] = 'moveRight'
     }
 
-    if (
-      (index % columnCount) + 1 === (index + 1) % columnCount &&
-      index < totalBox - 1
-    ) {
-      adjacentrPred(box.id, boxes[index + 1].id)
+    if ((index % columnCount) + 1 === (index + 1) % columnCount && index < totalBox - 1) {
+      let connectedId = boxes[index + 1].id
+      adjacentrPred(box.id, connectedId)
+      connectedBoxIdObj[connectedId] = 'moveLeft'
     }
 
     if (index - columnCount > -1) {
-      adjacentuPred(box.id, boxes[index - columnCount].id)
+      let connectedId = boxes[index - columnCount].id
+      adjacentuPred(box.id, connectedId)
+      connectedBoxIdObj[connectedId] = 'moveDown'
     }
 
     if (index + columnCount < totalBox) {
-      adjacentdPred(box.id, boxes[index + columnCount].id)
+      let connectedId = boxes[index + columnCount].id
+      adjacentdPred(box.id, connectedId)
+      connectedBoxIdObj[connectedId] = 'moveUp'
     }
+
+    box.connectedBoxIdObj = connectedBoxIdObj
   })
 
   shuffle(
@@ -94,6 +107,14 @@ export default function initialize(props) {
     const tile = tiles[randomIndex]
     const box = boxes[index]
     atPred(tile.id, box.id)
+  })
+
+  // NOTE
+  // Based on end goal, this might change, so if we change in the `isSolved` file,
+  // probably that should be reflected in here as well!
+  tiles.forEach((tile, index) => {
+    tile.expectedPosX = index % columnCount
+    tile.expectedPosY = Math.floor(index / columnCount)
   })
 
   emptyPred(boxes[totalBox - 1].id)

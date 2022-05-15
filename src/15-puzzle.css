@@ -26,6 +26,11 @@
   border: 1px solid rgb(84 147 108);
 }
 
+.tile.active {
+  background-color: #8d9f30;
+  border: 2px solid #4b5516;
+}
+
 .tile>small {
   color: #fff;
 }
