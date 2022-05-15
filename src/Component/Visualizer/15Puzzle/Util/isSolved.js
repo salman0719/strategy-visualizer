@@ -1,5 +1,7 @@
 export default function is15PuzzleSolved(puzzleItem) {
-  const { tiles, boxes } = puzzleItem
+  const { tiles } = puzzleItem
 
-  return false
+  return !tiles.find((tile, index) => {
+    return tile.boxNumber !== index + 1
+  })
 }

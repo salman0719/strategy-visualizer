@@ -9,6 +9,7 @@ import { getActions } from './Util/domain'
 import { ROOT_BRANCH, PREDICATE_KEY } from '../../../Util/constants'
 import createPuzzleCopy from '../../../Util/createPuzzleCopy'
 import { getUniqueID } from '../../../Util/getUniqueId'
+import is15PuzzleSolved from './Util/isSolved'
 
 const Puzzle15Visualizer = function () {
   useDocumentTitle('15 Puzzle')
@@ -88,6 +89,11 @@ const Puzzle15Visualizer = function () {
 
   useEffect(() => {
     const process = () => {
+      if (is15PuzzleSolved(puzzleItem)) {
+        setFeedback('Puzzle successfully solved.')
+        return
+      }
+
       setCopyControl.copiedItems(getBranches())
       const { tiles } = puzzleItem
       let feedback = null
