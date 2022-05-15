@@ -1,12 +1,13 @@
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react'
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import Box from './Box'
 import VisualizerContext from './Context'
 import Tile from './Tile'
 import getObj from '../../../Util/getObj'
 import { DEFAULT_COLUMNS } from './Constants'
-import { BOX_WIDTH, PREDICATE_KEY, ROOT_BRANCH } from '../../../Util/constants'
+import { BOX_WIDTH, ROOT_BRANCH } from '../../../Util/constants'
 import { getUniqueID } from '../../../Util/getUniqueId'
 import is15PuzzleSolved from './Util/isSolved'
+import { getActions, getPreconditions } from './Util/domain'
 
 const Puzzle15Container = forwardRef(function ({
   columnCount,
@@ -45,161 +46,21 @@ const Puzzle15Container = forwardRef(function ({
     Object.assign(tileObj, getObj(tiles, 'id'))
   }, [tiles])
 
-  const moveUpApplicable = useCallback(
-    (t, from, emp) => {
-      // :precondition (and (tile ?t) (position ?from) (position ?emp)
-      //                  (adjacentu ?from ?emp) (at ?t ?from) (empty ?emp))
+  const initPreconditions = useState(() => {
+    return getPreconditions(predicates)
+  })[0]
+  const preconditionRef = useRef(initPreconditions)
+  useEffect(() => {
+    preconditionRef.current = getPreconditions(predicates)
+  }, [predicates])
 
-      if (
-        predicates.tile.has(t) &&
-        predicates.position.has(from) &&
-        predicates.position.has(emp) &&
-        predicates.adjacentu.has(from, emp) &&
-        predicates.at.has(t, from) &&
-        predicates.empty.has(emp)
-      ) {
-        return true
-      }
-
-      return false
-    },
-    [predicates]
-  )
-
-  const moveDownApplicable = useCallback(
-    (t, from, emp) => {
-      // :precondition (and (tile ?t) (position ?from) (position ?emp)
-      //                    (adjacentd ?from ?emp) (at ?t ?from) (empty ?emp))
-
-      if (
-        predicates.tile.has(t) &&
-        predicates.position.has(from) &&
-        predicates.position.has(emp) &&
-        predicates.adjacentd.has(from, emp) &&
-        predicates.at.has(t, from) &&
-        predicates.empty.has(emp)
-      ) {
-        return true
-      }
-
-      return false
-    },
-    [predicates]
-  )
-
-  const moveLeftApplicable = useCallback(
-    (t, from, emp) => {
-      // :precondition (and (tile ?t) (position ?from) (position ?emp)
-      //                    (adjacentl ?from ?emp) (at ?t ?from) (empty ?emp))
-
-      if (
-        predicates.tile.has(t) &&
-        predicates.position.has(from) &&
-        predicates.position.has(emp) &&
-        predicates.adjacentl.has(from, emp) &&
-        predicates.at.has(t, from) &&
-        predicates.empty.has(emp)
-      ) {
-        return true
-      }
-
-      return false
-    },
-    [predicates]
-  )
-
-  const moveRightApplicable = useCallback(
-    (t, from, emp) => {
-      // :precondition (and (tile ?t) (position ?from) (position ?emp)
-      //                    (adjacentr ?from ?emp) (at ?t ?from) (empty ?emp))
-
-      if (
-        predicates.tile.has(t) &&
-        predicates.position.has(from) &&
-        predicates.position.has(emp) &&
-        predicates.adjacentr.has(from, emp) &&
-        predicates.at.has(t, from) &&
-        predicates.empty.has(emp)
-      ) {
-        return true
-      }
-
-      return false
-    },
-    [predicates]
-  )
-
-  const moveUp = useCallback(
-    (t, from, emp) => {
-      if (moveUpApplicable(t, from, emp)) {
-        // :effect (and (not (at ?t ?from)) (not (empty ?emp))
-        //            (at ?t ?emp) (empty ?from))
-        predicates.at.not(t, from)
-        predicates.empty.not(emp)
-        predicates.at(t, emp)
-        predicates.empty(from)
-
-        setPuzzleStateId(getUniqueID())
-
-        return true
-      }
-    },
-    [predicates]
-  )
-
-  const moveDown = useCallback(
-    (t, from, emp) => {
-      if (moveDownApplicable(t, from, emp)) {
-        // :effect (and (not (at ?t ?from)) (not (empty ?emp))
-        //            (at ?t ?emp) (empty ?from))
-        predicates.at.not(t, from)
-        predicates.empty.not(emp)
-        predicates.at(t, emp)
-        predicates.empty(from)
-
-        setPuzzleStateId(getUniqueID())
-
-        return true
-      }
-    },
-    [predicates]
-  )
-
-  const moveLeft = useCallback(
-    (t, from, emp) => {
-      if (moveLeftApplicable(t, from, emp)) {
-        // :effect (and (not (at ?t ?from)) (not (empty ?emp))
-        //            (at ?t ?emp) (empty ?from))
-        predicates.at.not(t, from)
-        predicates.empty.not(emp)
-        predicates.at(t, emp)
-        predicates.empty(from)
-
-        setPuzzleStateId(getUniqueID())
-
-        return true
-      }
-    },
-    [predicates]
-  )
-
-  const moveRight = useCallback(
-    (t, from, emp) => {
-      if (moveRightApplicable(t, from, emp)) {
-        // :effect (and (not (at ?t ?from)) (not (empty ?emp))
-        //            (at ?t ?emp) (empty ?from))
-        predicates.at.not(t, from)
-        predicates.empty.not(emp)
-        predicates.at(t, emp)
-        predicates.empty(from)
-
-        setPuzzleStateId(getUniqueID())
-
-        return true
-      }
-    },
-    [predicates]
-  )
+  const initActions = useState(() => {
+    return getActions(predicates)
+  })[0]
+  const actionRef = useRef(initActions)
+  useEffect(() => {
+    actionRef.current = getActions(predicates)
+  }, [predicates])
 
   const getMove = useCallback(
     (tileId) => {
@@ -214,18 +75,23 @@ const Puzzle15Container = forwardRef(function ({
 
       let fn = null
 
-      if (moveUpApplicable(t, from, emp)) {
-        fn = moveUp
-      } else if (moveDownApplicable(t, from, emp)) {
-        fn = moveDown
-      } else if (moveLeftApplicable(t, from, emp)) {
-        fn = moveLeft
-      } else if (moveRightApplicable(t, from, emp)) {
-        fn = moveRight
+      const curPreconditions = preconditionRef.current
+      const curActions = actionRef.current
+
+      if (curPreconditions.moveUp(t, from, emp)) {
+        fn = curActions.moveUp
+      } else if (curPreconditions.moveDown(t, from, emp)) {
+        fn = curActions.moveDown
+      } else if (curPreconditions.moveLeft(t, from, emp)) {
+        fn = curActions.moveLeft
+      } else if (curPreconditions.moveRight(t, from, emp)) {
+        fn = curActions.moveRight
       }
 
       if (fn) {
-        return fn.bind(null, t, from, emp)
+        return () => {
+          fn(t, from, emp) && setPuzzleStateId(getUniqueID())
+        }
       }
 
       return false
@@ -260,6 +126,8 @@ const Puzzle15Container = forwardRef(function ({
   }, [predicates])
 
   const applyMove = useCallback(([moveFn, moveArg]) => {
+    const { moveUp, moveLeft, moveDown, moveRight } = actionRef.current
+
     const fnMapper = {
       'moveUp': moveUp,
       'moveLeft': moveLeft,

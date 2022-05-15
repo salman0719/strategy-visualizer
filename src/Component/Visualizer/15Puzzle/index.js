@@ -4,14 +4,11 @@ import { Container, Button, Col, Form } from 'react-bootstrap'
 import initialize from './Util/Initialize'
 import Puzzle15Container from './PuzzleContainer'
 import { useCopyControl, useDocumentTitle } from '../../../Util/hooks'
-import { DEFAULT_COLUMNS, DEFAULT_ROWS } from './Constants'
+import { DEFAULT_AUTO_PLAY_INTERVAL, DEFAULT_COLUMNS, DEFAULT_ROWS } from './Constants'
+import { getActions } from './Util/domain'
 import { ROOT_BRANCH, PREDICATE_KEY } from '../../../Util/constants'
 import createPuzzleCopy from '../../../Util/createPuzzleCopy'
 import { getUniqueID } from '../../../Util/getUniqueId'
-
-// TODO
-// Move up to common source
-const DEFAULT_AUTO_PLAY_INTERVAL = 2000
 
 const Puzzle15Visualizer = function () {
   useDocumentTitle('15 Puzzle')
@@ -85,119 +82,100 @@ const Puzzle15Visualizer = function () {
   const getBranches = useCallback(() => {
     const moves = rootPuzzleRef.current.getMoves()
 
-    // moves.sort((fst, snd) => {
-    //   let fstValue = 0, sndValue = 0
-    //   if (['leftPersonJump', 'rightPersonJump'].includes(fst[0])) {
-    //     fstValue = 3
-    //   } else {
-    //     fstValue = fst[2].evenDistanceCount || 0
-    //   }
-
-    //   if (['leftPersonJump', 'rightPersonJump'].includes(snd[0])) {
-    //     sndValue = 3
-    //   } else {
-    //     sndValue = snd[2].evenDistanceCount || 0
-    //   }
-
-    //   return fstValue > sndValue ? -1 : 1
-    // })
-
-    // let highestValue = moves.length ? moves[0][2].evenDistanceCount : 0
-    // if (!highestValue && highestValue !== 0) { highestValue = 3 }
-
     // TODO
     // Extract the moves implemented inside the PuzzleContainer and take them
     // to a common source for this puzzle
 
-    return moves.map((move, index) => {
-      const moveName = move[0]
+    return moves.map(([moveName, moveArg], index) => {
+      const newPuzzleItem = createPuzzleCopy(puzzleItem)
+      getActions(newPuzzleItem[PREDICATE_KEY])[moveName].apply(null, moveArg)
 
       return {
-        ...createPuzzleCopy(puzzleItem),
+        ...newPuzzleItem,
         stateIdentifier: 'move-' + index + '-' + getUniqueID(),
-        initialMove: [
-          moveName, move[1],
-          {
-            message: ({ tiles, boxObj, predicates }) => {
-              const getDistance = (items) => {
-                return items.reduce((prev, cur) => {
-                  return prev + Math.abs(cur.posX - cur.expectedPosX) +
-                    Math.abs(cur.posY - cur.expectedPosY)
-                }, 0)
-              }
+        // initialMove: [
+        //   moveName, move[1],
+        //   {
+        //     message: ({ tiles, boxObj, predicates }) => {
+        //       const getDistance = (items) => {
+        //         return items.reduce((prev, cur) => {
+        //           return prev + Math.abs(cur.posX - cur.expectedPosX) +
+        //             Math.abs(cur.posY - cur.expectedPosY)
+        //         }, 0)
+        //       }
 
-              const slices = [
-                [tiles.slice(0, 2)],
-                [tiles.slice(3, 4), [3]],
-                [tiles.slice(2, 3), [7]],
-                [tiles.slice(2, 4)]
-              ]
+        //       const slices = [
+        //         [tiles.slice(0, 2)],
+        //         [tiles.slice(3, 4), [3]],
+        //         [tiles.slice(2, 3), [7]],
+        //         [tiles.slice(2, 4)]
+        //       ]
 
-              let sliceResponse = null
-              slices.find((slice, i) => {
-                let items = slice[0],
-                  pos = slice[1]
+        //       let sliceResponse = null
+        //       slices.find((slice, i) => {
+        //         let items = slice[0],
+        //           pos = slice[1]
 
-                if (items.find((tile, index) => {
-                  return tile.boxNumber !== (pos ? pos[index] : i * 2 + index + 1)
-                })) {
-                  // console.log(items.map((item) => (item.number)).join('-') + ' not properly placed!')
-                  const emptyBoxId = predicates.empty.getAll().keys().next().value
-                  const emptyBox = boxObj[emptyBoxId]
-                  const emptyBoxPosX = emptyBox.posX, emptyBoxPosY = emptyBox.posY
+        //         if (items.find((tile, index) => {
+        //           return tile.boxNumber !== (pos ? pos[index] : i * 2 + index + 1)
+        //         })) {
+        //           // console.log(items.map((item) => (item.number)).join('-') + ' not properly placed!')
+        //           const emptyBoxId = predicates.empty.getAll().keys().next().value
+        //           const emptyBox = boxObj[emptyBoxId]
+        //           const emptyBoxPosX = emptyBox.posX, emptyBoxPosY = emptyBox.posY
 
-                  let minDistance = Infinity
-                  items.forEach((item) => {
-                    let dist = Math.abs(item.posX - emptyBoxPosX) + Math.abs(item.posY - emptyBoxPosY)
-                    if (dist < minDistance) { minDistance = dist }
-                  })
+        //           let minDistance = Infinity
+        //           items.forEach((item) => {
+        //             let dist = Math.abs(item.posX - emptyBoxPosX) + Math.abs(item.posY - emptyBoxPosY)
+        //             if (dist < minDistance) { minDistance = dist }
+        //           })
 
-                  const distance = getDistance(items) + minDistance - 1
+        //           const distance = getDistance(items) + minDistance - 1
 
-                  sliceResponse = 'Tile `' + items.map((item) => (item.number)).join('-') + '`, Distance - `' + distance + '`'
-                  return true
-                }
+        //           sliceResponse = 'Tile `' + items.map((item) => (item.number)).join('-') + '`, Distance - `' + distance + '`'
+        //           return true
+        //         }
 
-                return false
-              })
+        //         return false
+        //       })
 
-              if (sliceResponse) { return sliceResponse }
+        //       if (sliceResponse) { return sliceResponse }
 
-              // for (let i = 0; i < 4; i++) {
-              //   let items = tiles.slice(i * 2, i * 2 + 2)
-              //   if (items.find((tile, index) => {
-              //     return tile.boxNumber !== i * 2 + index + 1
-              //   })) {
-              //     console.log(items.map((item) => (item.number)).join('-') + ' not properly placed!')
-              //     const emptyBoxId = predicates.empty.getAll().keys().next().value
-              //     const emptyBox = boxObj[emptyBoxId]
-              //     const emptyBoxPosX = emptyBox.posX, emptyBoxPosY = emptyBox.posY
+        //       // for (let i = 0; i < 4; i++) {
+        //       //   let items = tiles.slice(i * 2, i * 2 + 2)
+        //       //   if (items.find((tile, index) => {
+        //       //     return tile.boxNumber !== i * 2 + index + 1
+        //       //   })) {
+        //       //     console.log(items.map((item) => (item.number)).join('-') + ' not properly placed!')
+        //       //     const emptyBoxId = predicates.empty.getAll().keys().next().value
+        //       //     const emptyBox = boxObj[emptyBoxId]
+        //       //     const emptyBoxPosX = emptyBox.posX, emptyBoxPosY = emptyBox.posY
 
-              //     const fstDistance = Math.abs(items[0].posX - emptyBoxPosX) + Math.abs(items[0].posY - emptyBoxPosY)
-              //     const sndDistance = Math.abs(items[1].posX - emptyBoxPosX) + Math.abs(items[1].posY - emptyBoxPosY)
+        //       //     const fstDistance = Math.abs(items[0].posX - emptyBoxPosX) + Math.abs(items[0].posY - emptyBoxPosY)
+        //       //     const sndDistance = Math.abs(items[1].posX - emptyBoxPosX) + Math.abs(items[1].posY - emptyBoxPosY)
 
-              //     const distance = getDistance(items) + (fstDistance > sndDistance ? sndDistance : fstDistance) - 1
+        //       //     const distance = getDistance(items) + (fstDistance > sndDistance ? sndDistance : fstDistance) - 1
 
-              //     return 'Tile `' + items.map((item) => (item.number)).join('-') + '`, Distance - `' + distance + '`'
-              //   }
-              // }
+        //       //     return 'Tile `' + items.map((item) => (item.number)).join('-') + '`, Distance - `' + distance + '`'
+        //       //   }
+        //       // }
 
-              // const firstRowTiles = tiles.slice(0, 4)
-              // // TODO
-              // // Based on goal, this also needs to be adjusted
-              // if (firstRowTiles.find((tile, index) => {
-              //   return tile.boxNumber !== index + 1
-              // })) {
-              //   console.log('1-2-3-4 not properly placed!')
-              //   return 'First Row, Manhattan Distance - `' + getDistance(firstRowTiles) + '`'
-              // }
+        //       // const firstRowTiles = tiles.slice(0, 4)
+        //       // // TODO
+        //       // // Based on goal, this also needs to be adjusted
+        //       // if (firstRowTiles.find((tile, index) => {
+        //       //   return tile.boxNumber !== index + 1
+        //       // })) {
+        //       //   console.log('1-2-3-4 not properly placed!')
+        //       //   return 'First Row, Manhattan Distance - `' + getDistance(firstRowTiles) + '`'
+        //       // }
 
-              const manhattanDistance = getDistance(tiles)
+        //       const manhattanDistance = getDistance(tiles)
 
-              return 'Manhattan Distance - `' + manhattanDistance + '`'
-            }, success: false, activeTileId: move[1][0]
-          }
-        ]
+        //       return 'Manhattan Distance - `' + manhattanDistance + '`'
+        //     }, success: false, activeTileId: move[1][0]
+        //   }
+        // ]
       }
     })
   }, [puzzleItem])
