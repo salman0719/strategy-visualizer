@@ -35,7 +35,6 @@ const Puzzle15Visualizer = function () {
   }, [])
 
   const reset = useCallback(() => {
-    setFormValues({ ...formValues })
     setIsPlaying(false)
     setFeedback(null)
     setResetToken(getUniqueID())

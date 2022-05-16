@@ -158,11 +158,7 @@ const Puzzle15Container = forwardRef(function ({
 
   useImperativeHandle(ref, () => ({
     getMoves,
-    applyMove,
-    // TODO
-    // Move to a common source like it was done with getActions & getPreconditions
-    // isSolved: () => (isPuzzleSolved),
-    // isOver: () => (isPuzzleOver)
+    applyMove
   }), [predicates])
 
   // window.PREDICATES = window.PREDICATES || {}
@@ -180,10 +176,7 @@ const Puzzle15Container = forwardRef(function ({
 
   useEffect(() => {
     const isSolved = is15PuzzleSolved({ boxes, tiles })
-    const isOver = !getMoves(true)
-
     setIsPuzzleSolved(isSolved)
-    setIsPuzzleOver(isOver)
   }, [puzzleStateId, predicates])
 
   return (
