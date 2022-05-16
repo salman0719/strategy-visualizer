@@ -1,15 +1,18 @@
 import '../../../15-puzzle.css'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Container, Button, Col, Form } from 'react-bootstrap'
+import CodeMirror from '@uiw/react-codemirror'
+import { javascript } from '@codemirror/lang-javascript'
 import initialize from './Util/Initialize'
 import Puzzle15Container from './PuzzleContainer'
 import { useCopyControl, useDocumentTitle } from '../../../Util/hooks'
-import { DEFAULT_AUTO_PLAY_INTERVAL, DEFAULT_COLUMNS, DEFAULT_ROWS } from './Constants'
+import { DEFAULT_COLUMNS, DEFAULT_ROWS } from './Constants'
 import { getActions } from './Util/domain'
 import { ROOT_BRANCH, PREDICATE_KEY } from '../../../Util/constants'
 import createPuzzleCopy from '../../../Util/createPuzzleCopy'
 import { getUniqueID } from '../../../Util/getUniqueId'
 import is15PuzzleSolved from './Util/isSolved'
+import toast from '../../Toast'
 
 const Puzzle15Visualizer = function () {
   useDocumentTitle('15 Puzzle')
@@ -48,6 +51,12 @@ const Puzzle15Visualizer = function () {
   const onActive = useCallback((stateIdentifier) => {
     setCopyControl.activeBranch(stateIdentifier)
   }, [])
+
+  const [isPlaying, setIsPlaying] = useState(false)
+  const togglePlay = useCallback(() => {
+    setIsPlaying(!isPlaying)
+    !isPlaying ? window.dispatchEvent(new CustomEvent('display-moves')) : resetCopyControl()
+  }, [isPlaying])
 
   const onRequestApplyMove = useCallback((stateIdentifier) => {
     if (stateIdentifier) {
@@ -93,23 +102,41 @@ const Puzzle15Visualizer = function () {
         return
       }
 
-      setCopyControl.copiedItems(getBranches())
-      const { tiles } = puzzleItem
-      let feedback = null
+      // TEMP
+      // Skipping the following line execution
+      // setCopyControl.copiedItems(getBranches())
 
-      if (tiles.slice(0, 4).find((tile, index) => {
-        return tile.boxNumber !== index + 1 + 0
-      })) {
-        feedback = 'Solve the first row first.'
-      } else if (tiles.slice(4, 8).find((tile, index) => {
-        return tile.boxNumber !== index + 1 + 4
-      })) {
-        feedback = "Solve the second row now. Don't move the first row."
+      const constraintValue = constraintValueRef.current.trim()
+      if (constraintValue) {
+        try {
+          const fn = new Function('boxes', 'tiles', 'predicates', constraintValue)
+          const { boxes, tiles } = puzzleItem
+          const predicates = puzzleItem[PREDICATE_KEY]
+          const feedback = fn(boxes, tiles, predicates)
+          setFeedback(feedback || null)
+        } catch (ex) {
+          toast.error('Invalid code passed, please check out the console for more information.')
+          console.log('Error -', ex)
+        }
       } else {
-        feedback = "Solve the rest of the puzzle. Don't move the first two rows."
+        const { tiles } = puzzleItem
+        let feedback = null
+
+        if (tiles.slice(0, 4).find((tile, index) => {
+          return tile.boxNumber !== index + 1 + 0
+        })) {
+          feedback = 'Solve the first row first.'
+        } else if (tiles.slice(4, 8).find((tile, index) => {
+          return tile.boxNumber !== index + 1 + 4
+        })) {
+          feedback = "Solve the second row now. Don't move the first row."
+        } else {
+          feedback = "Solve the rest of the puzzle. Don't move the first two rows."
+        }
+
+        setFeedback(feedback)
       }
 
-      setFeedback(feedback)
     }
 
     const listener = (e) => {
@@ -137,16 +164,7 @@ const Puzzle15Visualizer = function () {
     }
   }, [puzzleItem])
 
-  const [isPlaying, setIsPlaying] = useState(false)
-  const togglePlay = useCallback(() => {
-    setIsPlaying(!isPlaying)
-    !isPlaying ? window.dispatchEvent(new CustomEvent('display-moves')) : resetCopyControl()
-  }, [isPlaying])
-
-  const [hideDisplay, setHideDisplay] = useState(false)
-  const toggleHideDisplay = useCallback(() => {
-    setHideDisplay(!hideDisplay)
-  }, [hideDisplay])
+  const constraintValueRef = useRef('\n\n\n')
 
   // TEMP
   // END
@@ -195,6 +213,17 @@ const Puzzle15Visualizer = function () {
             placeholder="Row Count"
           />
         </div>
+      </div>
+
+      <div className='d-flex justify-content-center text-start'>
+        <CodeMirror
+          value={constraintValueRef.current || ''}
+          width='600px'
+          extensions={[javascript({ jsx: true })]}
+          onChange={(value) => {
+            constraintValueRef.current = value
+          }}
+        />
       </div>
 
       <Puzzle15Container

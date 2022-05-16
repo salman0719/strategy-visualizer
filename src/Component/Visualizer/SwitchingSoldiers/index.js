@@ -1,6 +1,8 @@
 import '../../../switching-soldiers.css'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Container, Button, Form, Col } from 'react-bootstrap'
+import CodeMirror from '@uiw/react-codemirror'
+import { javascript } from '@codemirror/lang-javascript'
 import initialize from './Util/Initialize'
 import { DEFAULT_EMPTY_GROUND_COUNT, DEFAULT_PERSON_COUNT } from './Constants'
 import createPuzzleCopy from '../../../Util/createPuzzleCopy'
@@ -241,6 +243,8 @@ const SwitchingSoldiersVisualizer = function () {
     }
   }, [isAutoPlaying, autoPlayInterval, puzzleItem, hideDisplay])
 
+  const constraintValueRef = useRef('')
+
   // TEMP
   // END
 
@@ -330,6 +334,18 @@ const SwitchingSoldiersVisualizer = function () {
             />
           </div>
         </div>
+      </div>
+
+      <div className='d-flex justify-content-center text-start'>
+        <CodeMirror
+          value={constraintValueRef.current || ''}
+          width='600px'
+          minHeight='200px'
+          extensions={[javascript({ jsx: true })]}
+          onChange={(value) => {
+            constraintValueRef.current = value
+          }}
+        />
       </div>
 
       <SwitchingSoldiersPuzzleContainer
