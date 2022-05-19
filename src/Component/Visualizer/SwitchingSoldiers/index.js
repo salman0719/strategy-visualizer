@@ -15,6 +15,8 @@ import { getUniqueID } from '../../../Util/getUniqueId'
 // Move up to common source
 const DEFAULT_AUTO_PLAY_INTERVAL = 2000
 
+// Testing
+
 const SwitchingSoldiersVisualizer = function () {
   useDocumentTitle('Switching Soldiers')
 
