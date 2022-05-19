@@ -34,6 +34,9 @@ export const templatePredicateForOne = (
     return map.delete(item)
   }
   response.has = (item) => {
+    if (typeof item === 'object' && item && 'id' in item) {
+      item = item.id
+    }
     validate(item, 'has')
     return map.get(item) === true
   }
@@ -126,6 +129,12 @@ export const templatePredicateForTwo = (
     return nestedMap.delete(item2)
   }
   response.has = (item1, item2) => {
+    if (typeof item1 === 'object' && item1 && 'id' in item1) {
+      item1 = item1.id
+    }
+    if (typeof item2 === 'object' && item2 && 'id' in item2) {
+      item2 = item2.id
+    }
     validate(item1, item2, 'has')
 
     let nestedMap = map.get(item1)

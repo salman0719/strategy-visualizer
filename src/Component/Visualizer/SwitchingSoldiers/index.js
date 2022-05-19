@@ -336,7 +336,7 @@ const SwitchingSoldiersVisualizer = function () {
         </div>
       </div>
 
-      <div className='d-flex justify-content-center text-start'>
+      <div className='d-flex justify-content-center text-start d-none'>
         <CodeMirror
           value={constraintValueRef.current || ''}
           width='600px'
