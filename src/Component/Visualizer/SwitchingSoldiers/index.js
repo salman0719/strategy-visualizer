@@ -45,6 +45,7 @@ const SwitchingSoldiersVisualizer = function () {
   )
 
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false)
 
   const updatePuzzleItem = useCallback((initArg) => {
     setPuzzleItem(initialize(initArg))
@@ -225,7 +226,6 @@ const SwitchingSoldiersVisualizer = function () {
 
   const copyContainerRef = useRef(null)
   const autoPlayingRef = useRef(null)
-  const [isAutoPlaying, setIsAutoPlaying] = useState(false)
   const toggleAutoPlay = useCallback(() => {
     setIsAutoPlaying(!isAutoPlaying)
     isAutoPlaying && resetCopyControl()
