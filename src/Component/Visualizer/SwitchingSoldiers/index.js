@@ -27,10 +27,22 @@ const SwitchingSoldiersVisualizer = function () {
   })
   const { leftPersonCount, rightPersonCount, emptyGroundCount } = formValues
   const [puzzleItem, setPuzzleItem] = useState(null)
-  const { boxes, leftPersons, rightPersons } = puzzleItem || { boxes: [], leftPersons: [], rightPersons: [] }
+  const { boxes, leftPersons, rightPersons } = puzzleItem || {
+    boxes: [],
+    leftPersons: [],
+    rightPersons: []
+  }
   const predicates = puzzleItem?.[PREDICATE_KEY] || {}
-  const { copiedItems, set: setCopyControl, reset: resetCopyControl } = useCopyControl({ item: puzzleItem, copy: createPuzzleCopy })
-  const [autoPlayInterval, setAutoPlayInterval] = useState(DEFAULT_AUTO_PLAY_INTERVAL)
+  const {
+    copiedItems,
+    set: setCopyControl,
+    reset: resetCopyControl
+  } = useCopyControl({ item: puzzleItem, copy: createPuzzleCopy })
+  const [autoPlayInterval, setAutoPlayInterval] = useState(
+    DEFAULT_AUTO_PLAY_INTERVAL
+  )
+
+  const [isPlaying, setIsPlaying] = useState(false)
 
   const updatePuzzleItem = useCallback((initArg) => {
     setPuzzleItem(initialize(initArg))
@@ -46,10 +58,15 @@ const SwitchingSoldiersVisualizer = function () {
     setResetToken(getUniqueID())
   }, [])
 
-  const updateFormValue = useCallback((e) => {
-    const { target: { name, value } } = e
-    setFormValues({ ...formValues, [name]: value })
-  }, [formValues])
+  const updateFormValue = useCallback(
+    (e) => {
+      const {
+        target: { name, value }
+      } = e
+      setFormValues({ ...formValues, [name]: value })
+    },
+    [formValues]
+  )
 
   const updateAutoPlayInterval = useCallback((e) => {
     const value = parseFloat(e.target.value)
@@ -61,25 +78,30 @@ const SwitchingSoldiersVisualizer = function () {
   }, [])
 
   // Change the name to `onRequestApply` maybe?
-  const onRequestUpdate = useCallback((stateIdentifier) => {
-    const newPuzzleItem = { ...copiedItems.find((item) => (item.stateIdentifier === stateIdentifier)) }
+  const onRequestUpdate = useCallback(
+    (stateIdentifier) => {
+      const newPuzzleItem = {
+        ...copiedItems.find((item) => item.stateIdentifier === stateIdentifier)
+      }
 
-    // TODO
-    // This adding and removing `stateIdentifier` business means that if we want to use
-    // it elsewhere, we always have to manually add/remove this - which makes it easy
-    // to make a mistake. Lets adopt another policy!
-    delete newPuzzleItem.stateIdentifier
+      // TODO
+      // This adding and removing `stateIdentifier` business means that if we want to use
+      // it elsewhere, we always have to manually add/remove this - which makes it easy
+      // to make a mistake. Lets adopt another policy!
+      delete newPuzzleItem.stateIdentifier
 
-    setPuzzleItem(createPuzzleCopy(newPuzzleItem))
-    resetCopyControl()
+      setPuzzleItem(createPuzzleCopy(newPuzzleItem))
+      resetCopyControl()
 
-    // TEMP
-    if (isPlaying) {
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('display-moves'))
-      }, 500)
-    }
-  }, [copiedItems, isPlaying, isAutoPlaying])
+      // TEMP
+      if (isPlaying) {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('display-moves'))
+        }, 500)
+      }
+    },
+    [copiedItems, isPlaying, isAutoPlaying]
+  )
 
   useEffect(() => {
     updatePuzzleItem({ leftPersonCount, rightPersonCount, emptyGroundCount })
@@ -90,7 +112,8 @@ const SwitchingSoldiersVisualizer = function () {
     const moves = rootPuzzleRef.current.getMoves()
 
     moves.sort((fst, snd) => {
-      let fstValue = 0, sndValue = 0
+      let fstValue = 0,
+        sndValue = 0
       if (['leftPersonJump', 'rightPersonJump'].includes(fst[0])) {
         fstValue = 3
       } else {
@@ -107,14 +130,19 @@ const SwitchingSoldiersVisualizer = function () {
     })
 
     let highestValue = moves.length ? moves[0][2].evenDistanceCount : 0
-    if (!highestValue && highestValue !== 0) { highestValue = 3 }
+    if (!highestValue && highestValue !== 0) {
+      highestValue = 3
+    }
 
     return moves.map((move, index) => {
-      let message = null, success = false
+      let message = null,
+        success = false
       const moveName = move[0]
       const info = move[2]
       let evenDistanceCount = info.evenDistanceCount
-      if (!evenDistanceCount && evenDistanceCount !== 0) { evenDistanceCount = 3 }
+      if (!evenDistanceCount && evenDistanceCount !== 0) {
+        evenDistanceCount = 3
+      }
 
       if (moveName === 'leftPersonJump') {
         // success = true
@@ -126,17 +154,23 @@ const SwitchingSoldiersVisualizer = function () {
         if (info.evenDistanceCount > 0) {
           message = `Creates (${info.evenDistanceCount}) even distance. (Strategy: Try to create even distance if no jumping move is available)`
         } else {
-          message = moves.length === 1 ? 'Only move available.' : 'Not a strategic move. Only play if no other suitable move has been found.'
+          message =
+            moves.length === 1
+              ? 'Only move available.'
+              : 'Not a strategic move. Only play if no other suitable move has been found.'
         }
       }
 
-      if (evenDistanceCount === highestValue) { success = true }
+      if (evenDistanceCount === highestValue) {
+        success = true
+      }
 
       return {
         ...createPuzzleCopy(puzzleItem),
         stateIdentifier: 'move-' + index + '-' + getUniqueID(),
         initialMove: [
-          moveName, move[1],
+          moveName,
+          move[1],
           { message, success, activePersonId: move[1][0] }
         ]
       }
@@ -175,10 +209,11 @@ const SwitchingSoldiersVisualizer = function () {
     }
   }, [puzzleItem])
 
-  const [isPlaying, setIsPlaying] = useState(false)
   const togglePlay = useCallback(() => {
     setIsPlaying(!isPlaying)
-    !isPlaying ? window.dispatchEvent(new CustomEvent('display-moves')) : resetCopyControl()
+    !isPlaying
+      ? window.dispatchEvent(new CustomEvent('display-moves'))
+      : resetCopyControl()
   }, [isPlaying])
 
   const [hideDisplay, setHideDisplay] = useState(false)
@@ -201,7 +236,8 @@ const SwitchingSoldiersVisualizer = function () {
       if (hideDisplay) {
         resetCopyControl()
       } else {
-        !copyContainerRef.current.firstElementChild && window.dispatchEvent(new CustomEvent('display-moves'))
+        !copyContainerRef.current.firstElementChild &&
+          window.dispatchEvent(new CustomEvent('display-moves'))
       }
       let applyMove = true
 
@@ -232,12 +268,10 @@ const SwitchingSoldiersVisualizer = function () {
               setTimeout(fn, 300)
             }
           }
-
         }
       }
 
       window.setTimeout(fn, autoPlayInterval)
-
     } else {
       autoPlayingRef.current = null
     }
@@ -248,86 +282,90 @@ const SwitchingSoldiersVisualizer = function () {
   // TEMP
   // END
 
-  if (!puzzleItem) { return null }
+  if (!puzzleItem) {
+    return null
+  }
 
   return (
-    <Container className='mt-5'>
-      <div className='text-left'>
+    <Container className="mt-5">
+      <div className="text-left">
         <Button
           onClick={reset}
-          size='sm'
-          variant='secondary'
-          className='mb-2 mx-1 position-relative'
+          size="sm"
+          variant="secondary"
+          className="mb-2 mx-1 position-relative"
         >
           Reset
         </Button>
 
-        {!isAutoPlaying &&
+        {!isAutoPlaying && (
           <Button
             onClick={togglePlay}
-            size='sm'
-            variant='primary'
-            className='mb-2 mx-1 position-relative'
+            size="sm"
+            variant="primary"
+            className="mb-2 mx-1 position-relative"
           >
             {isPlaying ? 'Stop' : 'Play'}
-          </Button>}
+          </Button>
+        )}
 
-        {!isPlaying &&
+        {!isPlaying && (
           <Button
             onClick={toggleAutoPlay}
-            size='sm'
-            variant='success'
-            className='mb-2 mx-1 position-relative'
+            size="sm"
+            variant="success"
+            className="mb-2 mx-1 position-relative"
           >
             {isAutoPlaying ? 'Stop Auto-Play' : 'Auto-Play'}
-          </Button>}
+          </Button>
+        )}
 
         <div>
-          <div className='mb-2 mx-1 d-inline-block w-200'>
-            <label className='control-label'>Left Person Count</label>
+          <div className="mb-2 mx-1 d-inline-block w-200">
+            <label className="control-label">Left Person Count</label>
             <Form.Control
-              name='leftPersonCount'
+              name="leftPersonCount"
               value={leftPersonCount}
               onChange={updateFormValue}
-              placeholder='Left Person Count'
+              placeholder="Left Person Count"
             />
           </div>
 
-          <div className='mb-2 mx-1 d-inline-block w-200'>
-            <label className='control-label'>Right Person Count</label>
+          <div className="mb-2 mx-1 d-inline-block w-200">
+            <label className="control-label">Right Person Count</label>
             <Form.Control
-              name='rightPersonCount'
+              name="rightPersonCount"
               value={rightPersonCount}
               onChange={updateFormValue}
-              placeholder='Right Person Count'
+              placeholder="Right Person Count"
             />
           </div>
 
-          <div className='mb-2 mx-1 d-inline-block w-200'>
-            <label className='control-label'>Empty Ground Count</label>
+          <div className="mb-2 mx-1 d-inline-block w-200">
+            <label className="control-label">Empty Ground Count</label>
             <Form.Control
-              name='emptyGroundCount'
+              name="emptyGroundCount"
               value={emptyGroundCount}
               onChange={updateFormValue}
-              placeholder='Empty Ground Count'
+              placeholder="Empty Ground Count"
             />
           </div>
-          <div className='mb-2 mx-1 d-inline-block w-200'>
-            <label className='control-label'>Auto Play Interval</label>
+          <div className="mb-2 mx-1 d-inline-block w-200">
+            <label className="control-label">Auto Play Interval</label>
             <Form.Control
-              name='autoPlayInterval'
+              name="autoPlayInterval"
               value={autoPlayInterval}
               onChange={updateAutoPlayInterval}
-              placeholder='Auto Play Interval'
+              placeholder="Auto Play Interval"
             />
           </div>
 
-          <div className='mb-2 mx-1 d-inline-block w-200 text-start'>
+          <div className="mb-2 mx-1 d-inline-block w-200 text-start">
             <Form.Check
-              type='switch'
-              name='hideDisplay'
-              label='Hide Display'
-              className='d-inline-block'
+              type="switch"
+              name="hideDisplay"
+              label="Hide Display"
+              className="d-inline-block"
               checked={hideDisplay}
               onChange={toggleHideDisplay}
               disabled={isAutoPlaying}
@@ -336,11 +374,11 @@ const SwitchingSoldiersVisualizer = function () {
         </div>
       </div>
 
-      <div className='d-flex justify-content-center text-start d-none'>
+      <div className="d-flex justify-content-center text-start d-none">
         <CodeMirror
           value={constraintValueRef.current || ''}
-          width='600px'
-          minHeight='200px'
+          width="600px"
+          minHeight="200px"
           extensions={[javascript({ jsx: true })]}
           onChange={(value) => {
             constraintValueRef.current = value
@@ -360,7 +398,7 @@ const SwitchingSoldiersVisualizer = function () {
         isAutoPlaying={isAutoPlaying}
       />
 
-      <Col ref={copyContainerRef} className='justify-content-center m-auto'>
+      <Col ref={copyContainerRef} className="justify-content-center m-auto">
         {copiedItems.map((item) => {
           const { leftPersons, rightPersons, boxes, stateIdentifier } = item
           const predicates = item[PREDICATE_KEY]
@@ -384,14 +422,13 @@ const SwitchingSoldiersVisualizer = function () {
               onRequestUpdate={onRequestUpdate}
               isPlaying={isPlaying}
               isAutoPlaying={isAutoPlaying}
-
               // TEMP
               initialMove={initialMove}
             />
           )
         })}
       </Col>
-    </Container >
+    </Container>
   )
 }
 
